@@ -5,18 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Websockets test</title>
+    <style>
+        #messages {
+            list-style-type: none;
+        }
+    </style>
 </head>
 <body>
     <ul id="messages"></ul>
-    <form action="">
+    <form action="" id="chatform">
         <input type="text" name="" id="m" autocomplete="off">
         <button>Send</button>
+    </form>
+
+    <form action="" id="usernameform">
+        Select a username <br>
+        <input type="text" name="username" id="username">
+        <button>Select</button>
     </form>
 
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script>
         var socket = io();
-        document.querySelector('form').addEventListener('submit', function(e) {
+
+        document.querySelector('#usernameform').addEventListener('submit', function(e) {
+            e.preventDefault();
+            socket.emit('user connect', document.querySelector('#username').value);
+            document.querySelector('#username').value = '';
+            return false;
+        });
+
+        document.querySelector('#chatform').addEventListener('submit', function(e) {
             e.preventDefault();
             socket.emit('chat message', document.querySelector('#m').value);
             document.querySelector('#m').value = '';
