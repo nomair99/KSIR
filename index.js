@@ -21,7 +21,7 @@ app.use(session({
 app.use(express.urlencoded({extended: true}));
 
 app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/index.html');
+    res.render('index', {});
 });
 
 app.post('/login', function(req, res) {
