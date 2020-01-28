@@ -8,6 +8,20 @@ var MemoryStore = session.MemoryStore;
 var sessionStore = new MemoryStore();
 
 var users = {};
+var rooms = [];
+// TODO implement rooms as a heap?
+
+function roomIndex(name) {
+    /* Return the index of the room with name 'name'. Return -1 if no such room exists. */
+
+    for(let i = 0; i < rooms.length; i++) {
+        if(rooms[i].name = name) {
+            return i;
+        }
+    }
+
+    return -1;
+}
 
 app.set('view engine', 'ejs');
 
@@ -24,9 +38,65 @@ app.get('/', function(req, res) {
     res.render('index', {});
 });
 
+app.get('/rooms', function(req, res) {
+    if(!users[req.sessionID]) {
+        res.sendStatus(401);
+        return;
+    }
+
+    res.render('rooms', {rooms: rooms});
+});
+
+app.post('/createroom', function(req, res) {
+    if(!users[req.sessionID]) {
+        console.log("if 1");
+        res.sendStatus(401);
+        return;
+    }
+    if(!req.body.create_room_name || !(/^[a-zA-Z0-9]+$/.test(req.body.create_room_name))) {
+        // TODO send correct error code for missing data in request
+        console.log("if 2");
+        res.sendStatus(403);
+        return;
+    }
+    
+    if(roomIndex(req.body.create_room_name) != -1) {
+        // if a room already exists by that name
+        
+        // TODO show correct page
+        console.log("if 3");
+        res.sendStatus(403);
+        return;
+    }
+
+    rooms.push({
+        name: req.body.create_room_name,
+        users: []
+    });
+
+    res.redirect(`room/${rooms.length-1}`);
+});
+
+app.get('/room/:id', function(req, res) {
+    if(!users[req.sessionID]) {
+        res.sendStatus(401);
+        return;
+    }
+
+    let id = Number(req.params.id);
+
+    // NOTE this assumes that rooms cannot be deleted
+    if(id == NaN || id < 0 || id >= rooms.length) {
+        // parsing failed, or room doesn't exist
+
+        res.sendStatus(404);
+    }
+    
+    res.render('room', {room: rooms[id]});
+});
+
 app.post('/login', function(req, res) {
     if(!req.body.username) {
-        // TODO error
         res.sendStatus(401);
     }
 
@@ -37,6 +107,8 @@ app.post('/login', function(req, res) {
         users[req.sessionID].username = req.body.username;
         isNew = true;
     }
+
+    res.redirect('rooms');
 
     res.render('login', {
         sessionId: req.sessionID,
@@ -60,7 +132,6 @@ app.post('/login', function(req, res) {
 
 // io.on('connection', function(socket) {
 
-//     // lets try this
 //     console.log('%o', socket.request);
     
 //     socket.on('chat message', function(msg) {
