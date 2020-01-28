@@ -15,7 +15,7 @@ function roomIndex(name) {
     /* Return the index of the room with name 'name'. Return -1 if no such room exists. */
 
     for(let i = 0; i < rooms.length; i++) {
-        if(rooms[i].name = name) {
+        if(rooms[i].name === name) {
             return i;
         }
     }
