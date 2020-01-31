@@ -9,7 +9,7 @@ var sessionStore = new MemoryStore();
 
 var users = {};
 var rooms = [];
-// TODO implement rooms as a heap?
+// TODO implement rooms as a search tree? Particularly when we start deleteing rooms
 
 function roomIndex(name) {
     /* Return the index of the room with name 'name'. Return -1 if no such room exists. */
