@@ -1,0 +1,20 @@
+h1 {
+    color: #8a0303;
+    text-align: center;
+    font-size: 100px;
+
+}
+
+#f {
+    text-align: center;
+}
+
+#buttons {
+    text-align: center;
+}
+
+.btn {
+    height: 10%;
+    width: 10%;
+    font-size: 120%;
+} 
