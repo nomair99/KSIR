@@ -1,0 +1,46 @@
+body {
+    height: 100vh;
+    background-image: linear-gradient( white, rgb(74, 129, 230));
+}
+
+#header {
+    margin-top: 30px;
+    color: rgb(190, 83, 83);
+    font-family: "Times New Roman";
+    letter-spacing: 10px;
+    font-size: 10em;
+}
+
+#username {
+    width: 30%;
+    height: 40px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding-left: 15px;
+}
+
+#btn_submit {
+    width: 25%;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 50px;
+} 
+
+#btn_howTo {
+    width: 25%;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    margin-right: 10px;
+}
+
+#btn_privacy {
+    width: 25%;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    margin-left: 10px;
+}

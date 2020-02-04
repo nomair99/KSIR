@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
+var path = require('path');
 var io = require('socket.io')(http);
 
 var session = require('express-session');
@@ -24,6 +25,8 @@ function roomIndex(name) {
 }
 
 app.set('view engine', 'ejs');
+
+app.use(express.static(path.join(__dirname, "views")));
 
 app.use(session({
     store: sessionStore,
