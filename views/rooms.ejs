@@ -11,9 +11,12 @@
         <input type="text" name="create_room_name" id="create_room_name"> <input type="submit" value="Create">
     </form>
     <ul>
-        <% rooms.forEach(function(room, index) { %>
-            <li><a href="room/<%=index%>"><%= room.name %></a></li>
-        <% }); %>
+        <% let walk = rooms.head; %>
+        <% while(walk) { %>
+            <% let room = walk.obj; %>
+            <li><a href="room/<%=room.id%>"><%= room.name %></a></li>
+            <% walk = walk.next; %>
+        <% } %>
     </ul>
 </body>
 </html>

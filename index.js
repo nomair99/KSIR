@@ -7,9 +7,12 @@ var session = require('express-session');
 var MemoryStore = session.MemoryStore;
 var sessionStore = new MemoryStore();
 
-var users = {};
-var rooms = [];
-// TODO implement rooms as a search tree? Particularly when we start deleteing rooms
+var oll = require('./oll.js');
+
+// TODO have to search users on sessionId. Create alternative search or alter existing?
+var users = new oll.OrderedLinkedList((sessionID, user) => {return sessionID === user.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
+var rooms = new oll.OrderedLinkedList((id, room) => {return id === room.id;}, (id, room) => {return id > room.id;});
+var roomIdCounter = 0;
 
 function roomIndex(name) {
     /* Return the index of the room with name 'name'. Return -1 if no such room exists. */
@@ -39,7 +42,7 @@ app.get('/', function(req, res) {
 });
 
 app.get('/rooms', function(req, res) {
-    if(!users[req.sessionID]) {
+    if(!users.search(req.sessionID)) {
         res.sendStatus(401);
         return;
     }
@@ -48,51 +51,52 @@ app.get('/rooms', function(req, res) {
 });
 
 app.post('/createroom', function(req, res) {
-    if(!users[req.sessionID]) {
-        console.log("if 1");
+    if(!users.search(req.sessionID)) {
         res.sendStatus(401);
         return;
     }
     if(!req.body.create_room_name || !(/^[a-zA-Z0-9]+$/.test(req.body.create_room_name))) {
         // TODO send correct error code for missing data in request
-        console.log("if 2");
         res.sendStatus(403);
         return;
     }
     
-    if(roomIndex(req.body.create_room_name) != -1) {
+    if(rooms.search(req.body.create_room_name)) {
         // if a room already exists by that name
         
         // TODO show correct page
-        console.log("if 3");
         res.sendStatus(403);
         return;
     }
 
-    rooms.push({
+    let id = roomIdCounter;
+    roomIdCounter++;
+
+    rooms.insert({
+        id: id,
         name: req.body.create_room_name,
         users: []
     });
 
-    res.redirect(`room/${rooms.length-1}`);
+    res.redirect(`room/${id}`);
 });
 
 app.get('/room/:id', function(req, res) {
-    if(!users[req.sessionID]) {
+    if(!users.search(req.sessionID)) {
         res.sendStatus(401);
         return;
     }
 
     let id = Number(req.params.id);
 
-    // NOTE this assumes that rooms cannot be deleted
-    if(id == NaN || id < 0 || id >= rooms.length) {
+    // * this assumes that rooms cannot be deleted
+    if(id == NaN || id < 0 || !rooms.search(id)) {
         // parsing failed, or room doesn't exist
 
         res.sendStatus(404);
     }
     
-    res.render('room', {room: rooms[id]});
+    res.render('room', {room: rooms.search(id).obj});
 });
 
 app.post('/login', function(req, res) {
@@ -102,9 +106,11 @@ app.post('/login', function(req, res) {
 
     let isNew = false;
 
-    if(!users[req.sessionID]) {
-        users[req.sessionID] = {};
-        users[req.sessionID].username = req.body.username;
+    if(!users.search(req.sessionID)) {
+        users.insert({
+            sessionID: req.sessionID,
+            username: req.body.username
+        })
         isNew = true;
     }
 
@@ -112,7 +118,7 @@ app.post('/login', function(req, res) {
 
     res.render('login', {
         sessionId: req.sessionID,
-        username: users[req.sessionID].username,
+        username: users.search(req.sessionID).obj.username,
         isNew: isNew
     });
 });
