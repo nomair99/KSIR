@@ -27,13 +27,13 @@ gameBrowserServer.on('connection', function(socket) {
         socket.disconnect(true);
         return;
     }
-    
+
     gameBrowserServer.emit('user-joined', `${user.obj.username} joined the lobby.`);
 });
 
 // the /game namespace handles individual games
 // each room inside the namespace represents a single game
-// the namespace room is tied to the corresponding room object 
+// the namespace room is tied to the corresponding room object
 // and every user socket is subscribed to it
 var gameServer = io.of('/game');
 gameServer.on('connection', function(socket) {
@@ -113,15 +113,15 @@ app.post('/createroom', function(req, res) {
         res.sendStatus(403);
         return;
     }
-    
+
     if(rooms.search(req.body.create_room_name)) {
         // if a room already exists by that name
-        
+
         // TODO show correct page
         res.sendStatus(403);
         return;
     }
-    
+
     // ? can this create a race condition?
     let id = roomIdCounter;
     roomIdCounter++;
@@ -158,7 +158,7 @@ app.get('/room/:id', function(req, res) {
 });
 
 app.post('/login', function(req, res) {
-    if(!req.body.username) {
+    if(!req.body.username || !(/^[a-zA-Z0-9]+$/.test(req.body.username))) {
         return res.sendStatus(401);
     }
 
