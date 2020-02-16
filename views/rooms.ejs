@@ -7,6 +7,7 @@
     <title>Chat Rooms</title>
 </head>
 <body>
+    <p id="connect"></p>
     <form action="createroom" method="post">
         <input type="text" name="create_room_name" id="create_room_name"> <input type="submit" value="Create">
     </form>
@@ -18,5 +19,16 @@
             <% walk = walk.next; %>
         <% } %>
     </ul>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
+    <script>
+        var socket = io('/game-browser');
+        socket.on('user-joined', function(msg) {
+            let connect = document.querySelector('#connect');
+            let newUserJoinText = document.createTextNode(msg);
+            let lineBreak = document.createElement('br');
+            connect.appendChild(newUserJoinText);
+            connect.appendChild(lineBreak);
+        });
+    </script>
 </body>
 </html>

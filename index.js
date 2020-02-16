@@ -18,6 +18,18 @@ io.use(function(socket, next) {
     sessionMiddleware(socket.request, socket.request.res, next);
 });
 
+var gameBrowserServer = io.of('/game-browser');
+gameBrowserServer.on('connection', function(socket) {
+    let sessionID = socket.request.sessionID;
+    let user = users.search(sessionID);
+    if(!user) {
+        socket.disconnect(true);
+        return;
+    }
+
+    gameBrowserServer.emit('user-joined', `${user.obj.username} joined the lobby.`);
+});
+
 var oll = require('./oll.js');
 
 var users = new oll.OrderedLinkedList((sessionID, user) => {return sessionID === user.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
@@ -26,7 +38,6 @@ var roomIdCounter = 0;
 
 io.on('connection', function(socket) {
     console.log(socket.request.sessionID);
-    console.log(socket.request.session);
     console.log('Someone connected.');
 });
 
