@@ -23,11 +23,46 @@ gameBrowserServer.on('connection', function(socket) {
     let sessionID = socket.request.sessionID;
     let user = users.search(sessionID);
     if(!user) {
+        console.log("User wasn't registered.")
+        socket.disconnect(true);
+        return;
+    }
+    
+    gameBrowserServer.emit('user-joined', `${user.obj.username} joined the lobby.`);
+});
+
+// the /game namespace handles individual games
+// each room inside the namespace represents a single game
+// the namespace room is tied to the corresponding room object 
+// and every user socket is subscribed to it
+var gameServer = io.of('/game');
+gameServer.on('connection', function(socket) {
+    let sessionID = socket.request.sessionID;
+    let user = users.search(sessionID);
+    if(!user) {
+        console.log("User wasn't registered.")
+        socket.disconnect(true);
+        return;
+    }
+    if(!user.obj.roomID) {
+        console.log("User didn't belong to a game room.");
         socket.disconnect(true);
         return;
     }
 
-    gameBrowserServer.emit('user-joined', `${user.obj.username} joined the lobby.`);
+    // subscribe to the game room
+    socket.join(`game-${user.obj.roomID}`);
+
+    socket.on('disconnect', function() {
+        // if a user disconnects, remove them from the game room
+        user.obj.roomID = null;
+    });
+});
+
+// ? should this be socket.on
+gameServer.on('message-send', function(msg) {
+    // TODO emit the message out to all other users in the room
+    // ? can this be used to DOS the server
 });
 
 var oll = require('./oll.js');
@@ -60,7 +95,8 @@ app.get('/rooms', function(req, res) {
 });
 
 app.post('/createroom', function(req, res) {
-    if(!users.search(req.sessionID)) {
+    let user = users.search(req.sessionID);
+    if(!user) {
         res.sendStatus(401);
         return;
     }
@@ -78,23 +114,23 @@ app.post('/createroom', function(req, res) {
         return;
     }
     
+    // ? can this create a race condition?
     let id = roomIdCounter;
     roomIdCounter++;
-    
-    // TODO create a room in the socket
 
     rooms.insert({
         id: id,
         name: req.body.create_room_name,
-        users: []
+        users: [user]
     });
+    user.obj.roomID = id;
 
     res.redirect(`room/${id}`);
 });
 
 app.get('/room/:id', function(req, res) {
     if(!users.search(req.sessionID)) {
-        res.sendStatus(401);
+        res.redirect('/');
         return;
     }
 
@@ -129,46 +165,7 @@ app.post('/login', function(req, res) {
     }
 
     res.redirect('rooms');
-
-    res.render('login', {
-        sessionId: req.sessionID,
-        username: users.search(req.sessionID).obj.username,
-        isNew: isNew
-    });
 });
-
-// app.post('/room', function(req, res) {
-
-//     // TODO check length
-//     if(req.body.username) {
-//         console.log(`got username ${req.body.username}`)
-//         users[req.sessionID] = {};
-//         users[req.sessionID].username = req.body.username;
-//         res.sendFile(__dirname + '/chatroom.html');
-//     } else {
-//         res.end("Unauthorized user.");
-//     }
-// });
-
-// io.on('connection', function(socket) {
-
-//     console.log('%o', socket.request);
-    
-//     socket.on('chat message', function(msg) {
-//         if(users[socket.id]) {
-//             let username = users[socket.id];
-//             console.log('message: ' + msg);
-//             io.sockets.in('chatroom').emit('chat message', `${username}: ${msg}`);
-//         }
-//     });
-    
-//     socket.on('disconnect', function() {
-//         if(users[socket.id]) {
-//             delete users[socket.id];
-//         }
-//         console.log('user disconnected');
-//     });
-// });
 
 http.listen(3000, function() {
     console.log('listening on port 3000');
