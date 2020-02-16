@@ -9,5 +9,13 @@
 <body>
     <a href="rooms">Back</a><br>
     <h1><%= room.name %></h1>
+    <p id="connect"></p>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
+    <script>
+        var socket = io('http://localhost:3000/room/<%=room.id%>');
+        socket.on('connection', function() {
+            document.querySelector('#connect').innerHTML = "Connected";
+        });
+    </script>
 </body>
 </html>

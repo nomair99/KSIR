@@ -1,40 +1,38 @@
 var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
-var io = require('socket.io')(http);
 
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
 var sessionStore = new MemoryStore();
-
-var oll = require('./oll.js');
-
-// TODO have to search users on sessionId. Create alternative search or alter existing?
-var users = new oll.OrderedLinkedList((sessionID, user) => {return sessionID === user.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
-var rooms = new oll.OrderedLinkedList((id, room) => {return id === room.id;}, (id, room) => {return id > room.id;});
-var roomIdCounter = 0;
-
-function roomIndex(name) {
-    /* Return the index of the room with name 'name'. Return -1 if no such room exists. */
-
-    for(let i = 0; i < rooms.length; i++) {
-        if(rooms[i].name === name) {
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-app.set('view engine', 'ejs');
-
-app.use(session({
+var sessionMiddleware = session({
     store: sessionStore,
     secret: 'secret',
     key: 'express.sid',
     saveUninitialized: true,
     resave: false
-}));
+});
+
+var io = require('socket.io')(http);
+io.use(function(socket, next) {
+    sessionMiddleware(socket.request, socket.request.res, next);
+});
+
+var oll = require('./oll.js');
+
+var users = new oll.OrderedLinkedList((sessionID, user) => {return sessionID === user.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
+var rooms = new oll.OrderedLinkedList((id, room) => {return id === room.id;}, (id, room) => {return id > room.id;});
+var roomIdCounter = 0;
+
+io.on('connection', function(socket) {
+    console.log(socket.request.sessionID);
+    console.log(socket.request.session);
+    console.log('Someone connected.');
+});
+
+app.set('view engine', 'ejs');
+
+app.use(sessionMiddleware);
 app.use(express.urlencoded({extended: true}));
 
 app.get('/', function(req, res) {
@@ -68,9 +66,11 @@ app.post('/createroom', function(req, res) {
         res.sendStatus(403);
         return;
     }
-
+    
     let id = roomIdCounter;
     roomIdCounter++;
+    
+    // TODO create a room in the socket
 
     rooms.insert({
         id: id,
@@ -87,21 +87,24 @@ app.get('/room/:id', function(req, res) {
         return;
     }
 
-    let id = Number(req.params.id);
+    let user = users.search(req.sessionID);
+    console.log(`room acccessed by: ${user.obj.sessionID}`);
 
-    // * this assumes that rooms cannot be deleted
-    if(id == NaN || id < 0 || !rooms.search(id)) {
+    let id = Number(req.params.id);
+    let room = null;
+
+    if(id == NaN || id < 0 || !(room = rooms.search(id))) {
         // parsing failed, or room doesn't exist
 
-        res.sendStatus(404);
+        return res.sendStatus(404);
     }
-    
-    res.render('room', {room: rooms.search(id).obj});
+
+    res.render('room', {room: room.obj});
 });
 
 app.post('/login', function(req, res) {
     if(!req.body.username) {
-        res.sendStatus(401);
+        return res.sendStatus(401);
     }
 
     let isNew = false;
