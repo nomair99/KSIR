@@ -44,18 +44,26 @@ gameServer.on('connection', function(socket) {
         socket.disconnect(true);
         return;
     }
-    if(!user.obj.roomID) {
+
+    let roomID = user.obj.roomID;
+    if(!roomID) {
         console.log("User didn't belong to a game room.");
         socket.disconnect(true);
         return;
     }
 
     // subscribe to the game room
-    socket.join(`game-${user.obj.roomID}`);
+    socket.join(`game-${roomID}`);
+
+    // ? can a user get added multiple times
+    let room = rooms.search(roomID);
+    room.obj.users.push(sessionID);
 
     socket.on('disconnect', function() {
         // if a user disconnects, remove them from the game room
         user.obj.roomID = null;
+
+        // TODO remove user from the room.users list
     });
 });
 
@@ -121,7 +129,7 @@ app.post('/createroom', function(req, res) {
     rooms.insert({
         id: id,
         name: req.body.create_room_name,
-        users: [user]
+        users: []
     });
     user.obj.roomID = id;
 
