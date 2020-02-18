@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+var path = require("path");
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 
@@ -10,6 +11,8 @@ var sessionStore = new MemoryStore();
 var users = {};
 var rooms = [];
 // TODO implement rooms as a search tree? Particularly when we start deleteing rooms
+
+app.use(express.static(path.join(__dirname, "views")))
 
 function roomIndex(name) {
     /* Return the index of the room with name 'name'. Return -1 if no such room exists. */
@@ -35,7 +38,7 @@ app.use(session({
 app.use(express.urlencoded({extended: true}));
 
 app.get('/', function(req, res) {
-    res.render('index', {});
+    res.render('privacy', {});
 });
 
 app.get('/rooms', function(req, res) {
