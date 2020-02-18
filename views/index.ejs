@@ -9,9 +9,11 @@
     </style>
 </head>
 <body>
+    <%- error_user %>
     <form action="login" method="post">
-        Select a username <input type="text" name="username" id="username"><br>
+        Select a username. Make sure that the username is 2-15 characters long and contains only letters and numbers. <input type="text" name="username" id="username"><br>
         <input type="submit" value="Select">
     </form>
+
 </body>
 </html>

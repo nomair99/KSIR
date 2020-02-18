@@ -85,12 +85,11 @@ io.on('connection', function(socket) {
 });
 
 app.set('view engine', 'ejs');
-
 app.use(sessionMiddleware);
 app.use(express.urlencoded({extended: true}));
 
 app.get('/', function(req, res) {
-    res.render('index', {});
+    res.render('index', {error_user: req.session.error_user});
 });
 
 app.get('/rooms', function(req, res) {
@@ -99,7 +98,7 @@ app.get('/rooms', function(req, res) {
         return;
     }
 
-    res.render('rooms', {rooms: rooms});
+    res.render('rooms', {rooms: rooms, error_room: req.session.error_room});
 });
 
 app.post('/createroom', function(req, res) {
@@ -108,9 +107,11 @@ app.post('/createroom', function(req, res) {
         res.sendStatus(401);
         return;
     }
-    if(!req.body.create_room_name || !(/^[a-zA-Z0-9]+$/.test(req.body.create_room_name))) {
+    if(!(/^[a-zA-Z0-9]+$/.test(req.body.create_room_name)) || req.body.create_room_name.length<2 || req.body.create_room_name.length>15){
         // TODO send correct error code for missing data in request
-        res.sendStatus(403);
+        //res.sendStatus(403);
+        req.session.error_room = 'Invalid room name';
+        res.redirect('rooms');
         return;
     }
 
@@ -158,8 +159,10 @@ app.get('/room/:id', function(req, res) {
 });
 
 app.post('/login', function(req, res) {
-    if(!req.body.username || !(/^[a-zA-Z0-9]+$/.test(req.body.username))) {
-        return res.sendStatus(401);
+    if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length<2 || req.body.username.length>15){
+        req.session.error_user = 'Invalid username';
+        res.redirect('/');
+        return;
     }
 
     let isNew = false;
