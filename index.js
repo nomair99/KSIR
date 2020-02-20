@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+var path = require("path");
 var http = require('http').createServer(app);
 
 var session = require('express-session');
@@ -31,6 +32,7 @@ gameBrowserServer.on('connection', function(socket) {
     gameBrowserServer.emit('user-joined', `${user.obj.username} joined the lobby.`);
 });
 
+app.use(express.static(path.join(__dirname, "views")))
 // the /game namespace handles individual games
 // each room inside the namespace represents a single game
 // the namespace room is tied to the corresponding room object 
@@ -90,7 +92,7 @@ app.use(sessionMiddleware);
 app.use(express.urlencoded({extended: true}));
 
 app.get('/', function(req, res) {
-    res.render('index', {});
+    res.render('privacy', {});
 });
 
 app.get('/rooms', function(req, res) {
