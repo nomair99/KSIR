@@ -92,7 +92,7 @@ app.use(sessionMiddleware);
 app.use(express.urlencoded({extended: true}));
 
 app.get('/', function(req, res) {
-    res.render('privacy', {});
+    res.render('index', {});
 });
 
 app.get('/rooms', function(req, res) {
