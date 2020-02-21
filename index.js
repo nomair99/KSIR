@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+var path = require("path");
 var http = require('http').createServer(app);
 
 var session = require('express-session');
@@ -31,6 +32,8 @@ gameBrowserServer.on('connection', function(socket) {
     gameBrowserServer.emit('user-joined', `${user.obj.username} joined the lobby.`);
 });
 
+app.use(express.static(path.join(__dirname, "views")));
+
 // the /game namespace handles individual games
 // each room inside the namespace represents a single game
 // the namespace room is tied to the corresponding room object
@@ -61,16 +64,44 @@ gameServer.on('connection', function(socket) {
 
     socket.on('disconnect', function() {
         // if a user disconnects, remove them from the game room
-        user.obj.roomID = null;
 
-        // TODO remove user from the room.users list
+        let room = rooms.search(user.obj.roomID);
+        if(room) {
+            // sanity check
+
+            if(user.obj.sessionID === room.host) {
+                // the host left, destroy the room
+
+                // TODO close all connections after this
+                // TODO show message to users on /room, provide link to go back to /rooms
+                gameServer.sockets.in(`game-${roomID}`).emit('host left', null);
+
+                // kick all users from the room and delete it
+                for(let i = 0; i < room.obj.users.length; i++) {
+                    let userToKick = users.search(room.obj.users[i]);
+                    if(userToKick) {
+                        userToKick.obj.roomID = null;
+                    }
+                }
+                rooms.delete(roomID);
+            } else {
+                for(let i = 0; i < room.obj.users.length; i++) {
+                    if(room.obj.users[i] === user.sessionID) {
+                        room.obj.users.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        user.obj.roomID = null;
     });
 });
 
 // ? should this be socket.on
 gameServer.on('message-send', function(msg) {
     // TODO emit the message out to all other users in the room
-    // ? can this be used to DOS the server
 });
 
 var oll = require('./oll.js');
@@ -130,6 +161,7 @@ app.post('/createroom', function(req, res) {
     rooms.insert({
         id: id,
         name: req.body.create_room_name,
+        host: user.sessionID,
         users: []
     });
     user.obj.roomID = id;
