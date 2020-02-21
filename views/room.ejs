@@ -17,6 +17,12 @@
         socket.on('connection', function() {
             document.querySelector('#connect').innerHTML = "Connected";
         });
+
+        socket.on('host left', function() {
+            // TODO show "host has left box"
+            // user must no longer be able to interact with the page
+            // what if 
+        });
     </script>
 </body>
 </html>
