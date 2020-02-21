@@ -33,6 +33,7 @@ gameBrowserServer.on('connection', function(socket) {
 });
 
 app.use(express.static(path.join(__dirname, "views")))
+
 // the /game namespace handles individual games
 // each room inside the namespace represents a single game
 // the namespace room is tied to the corresponding room object 
@@ -166,8 +167,6 @@ app.get('/room/:id', function(req, res) {
 
         return res.sendStatus(404);
     }
-
-    room.obj.users.push(user.obj.sessionID);
 
     res.render('room', {room: room.obj});
 });
