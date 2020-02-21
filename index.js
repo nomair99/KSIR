@@ -63,9 +63,20 @@ gameServer.on('connection', function(socket) {
 
     socket.on('disconnect', function() {
         // if a user disconnects, remove them from the game room
-        user.obj.roomID = null;
 
-        // TODO remove user from the room.users list
+        let room = rooms.search(user.obj.roomID);
+        if(room) {
+            // sanity check
+            
+            for(let i = 0; i < room.users.length; i++) {
+                if(room.users[i] == user.sessionID) {
+                    room.users.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        
+        user.obj.roomID = null;
     });
 });
 
@@ -155,6 +166,8 @@ app.get('/room/:id', function(req, res) {
 
         return res.sendStatus(404);
     }
+
+    room.obj.users.push(user.obj.sessionID);
 
     res.render('room', {room: room.obj});
 });
