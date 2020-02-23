@@ -34,12 +34,12 @@ gameBrowserServer.on('connection', function(socket) {
 
 app.use(express.static(path.join(__dirname, "views")));
 
-// the /game namespace handles individual games
-// each room inside the namespace represents a single game
+// the /lobby namespace handles individual game lobbies
+// each room inside the namespace represents a single lobby
 // the namespace room is tied to the corresponding room object 
 // and every user socket is subscribed to it
-var gameServer = io.of('/game');
-gameServer.on('connection', function(socket) {
+var lobbyServer = io.of('/lobby');
+lobbyServer.on('connection', function(socket) {
     let sessionID = socket.request.sessionID;
     let user = users.search(sessionID);
     if(!user) {
@@ -74,7 +74,7 @@ gameServer.on('connection', function(socket) {
 
                 // TODO close all connections after this
                 // TODO show message to users on /room, provide link to go back to /rooms
-                gameServer.sockets.in(`game-${roomID}`).emit('host left', null);
+                lobbyServer.sockets.in(`game-${roomID}`).emit('host left', null);
 
                 // kick all users from the room and delete it
                 for(let i = 0; i < room.obj.users.length; i++) {
@@ -83,7 +83,11 @@ gameServer.on('connection', function(socket) {
                         userToKick.obj.roomID = null;
                     }
                 }
+
                 rooms.delete(roomID);
+                room = null;
+                roomID = null;
+
             } else {
                 for(let i = 0; i < room.obj.users.length; i++) {
                     if(room.obj.users[i] === user.sessionID) {
@@ -97,10 +101,19 @@ gameServer.on('connection', function(socket) {
         
         user.obj.roomID = null;
     });
+
+    socket.on('start request', function(data) {
+        if(sessionID === room.obj.host) {
+            // only the host can make a start request
+
+            room.obj.inProgress = true;
+            lobbyServer.sockets.in(`game-${roomID}`).emit('start game', null);
+        }
+    });
 });
 
 // ? should this be socket.on
-gameServer.on('message-send', function(msg) {
+lobbyServer.on('message-send', function(msg) {
     // TODO emit the message out to all other users in the room
 });
 
@@ -161,7 +174,8 @@ app.post('/createroom', function(req, res) {
         id: id,
         name: req.body.create_room_name,
         host: user.sessionID,
-        users: []
+        users: [],
+        inProgress: false
     });
     user.obj.roomID = id;
 
@@ -169,12 +183,13 @@ app.post('/createroom', function(req, res) {
 });
 
 app.get('/room/:id', function(req, res) {
-    if(!users.search(req.sessionID)) {
+    let user = users.search(req.sessionID);
+
+    if(!user) {
         res.redirect('/');
         return;
     }
 
-    let user = users.search(req.sessionID);
     console.log(`room acccessed by: ${user.obj.sessionID}`);
 
     let id = Number(req.params.id);
@@ -186,7 +201,7 @@ app.get('/room/:id', function(req, res) {
         return res.sendStatus(404);
     }
 
-    res.render('room', {room: room.obj});
+    res.render('room', {currentUser: user.obj, room: room.obj, users: users});
 });
 
 app.post('/login', function(req, res) {
@@ -207,6 +222,6 @@ app.post('/login', function(req, res) {
     res.redirect('rooms');
 });
 
-http.listen(443, function() {
-    console.log('listening on port 443');
+http.listen(3000, function() {
+    console.log('listening on port 3000');
 });
