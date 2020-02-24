@@ -9,19 +9,45 @@
 <body>
     <a href="/rooms">Back</a><br>
     <h1><%= room.name %></h1>
+    <ul>
+        <% 
+            for(let i = 0; i < room.users.length; i++) {
+                let user = users.search(room.users[i]);
+                if(user) {
+        %>
+        <li><%= user.obj.username %></li>
+        <%
+                }
+            } 
+        %>
+    </ul>
+    <%
+        if(currentUser.sessionID === room.host) {
+    %>
+    <button id="start-btn">Start Game</button>
+    <%
+        }
+    %>
     <p id="connect"></p>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script>
-        // var socket = io('http://localhost:3000/room/<%=room.id%>');
-        var socket = io();
+        var socket = io('/lobby');
         socket.on('connection', function() {
             document.querySelector('#connect').innerHTML = "Connected";
         });
 
-        socket.on('host left', function() {
+        socket.on('host left', function(data) {
             // TODO show "host has left box"
             // user must no longer be able to interact with the page
-            // what if 
+        });
+
+        socket.on('start game', function(data) {
+            // ! change base url or it won't work on server
+            window.location = "http://localhost:3000/room/<%= room.id %>/game";
+        });
+
+        document.querySelector('#start-btn').addEventListener('click', function(e) {
+            socket.emit('start request', null);
         });
     </script>
 </body>
