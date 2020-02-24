@@ -24,7 +24,7 @@ gameBrowserServer.on('connection', function(socket) {
     let sessionID = socket.request.sessionID;
     let user = users.search(sessionID);
     if(!user) {
-        console.log("User wasn't registered.")
+        console.log("User wasn't registered. Disconnecting.")
         socket.disconnect(true);
         return;
     }
@@ -43,14 +43,15 @@ lobbyServer.on('connection', function(socket) {
     let sessionID = socket.request.sessionID;
     let user = users.search(sessionID);
     if(!user) {
-        console.log("User wasn't registered.")
+        console.log("User wasn't registered. Disconnecting.")
         socket.disconnect(true);
         return;
     }
 
     let roomID = user.obj.roomID;
-    if(!roomID) {
-        console.log("User didn't belong to a game room.");
+    console.log(roomID);
+    if(roomID === null) {
+        console.log("User didn't belong to a game room. Disconnecting.");
         socket.disconnect(true);
         return;
     }
@@ -65,16 +66,19 @@ lobbyServer.on('connection', function(socket) {
     socket.on('disconnect', function() {
         // if a user disconnects, remove them from the game room
 
+        console.log(`${sessionID} disconnected from ${roomID}`);
         let room = rooms.search(user.obj.roomID);
         if(room) {
             // sanity check
             
-            if(user.obj.sessionID === room.host) {
+            if(user.obj.sessionID === room.obj.host) {
                 // the host left, destroy the room
 
                 // TODO close all connections after this
                 // TODO show message to users on /room, provide link to go back to /rooms
-                lobbyServer.sockets.in(`game-${roomID}`).emit('host left', null);
+                // TODO send to all OTHER sockets
+                console.log(`host left room ${roomID}`);
+                lobbyServer.in(`game-${roomID}`).emit('host left', null);
 
                 // kick all users from the room and delete it
                 for(let i = 0; i < room.obj.users.length; i++) {
@@ -107,7 +111,7 @@ lobbyServer.on('connection', function(socket) {
             // only the host can make a start request
 
             room.obj.inProgress = true;
-            lobbyServer.sockets.in(`game-${roomID}`).emit('start game', null);
+            lobbyServer.in(`game-${roomID}`).emit('start game', null);
         }
     });
 });
@@ -173,9 +177,10 @@ app.post('/createroom', function(req, res) {
     rooms.insert({
         id: id,
         name: req.body.create_room_name,
-        host: user.sessionID,
+        host: user.obj.sessionID,
         users: [],
-        inProgress: false
+        inProgress: false,
+        maxUsers: 6
     });
     user.obj.roomID = id;
 
@@ -186,22 +191,56 @@ app.get('/room/:id', function(req, res) {
     let user = users.search(req.sessionID);
 
     if(!user) {
-        res.redirect('/');
-        return;
+        return res.redirect('/');
     }
 
+    
     console.log(`room acccessed by: ${user.obj.sessionID}`);
-
+    
     let id = Number(req.params.id);
     let room = null;
-
+    
     if(id == NaN || id < 0 || !(room = rooms.search(id))) {
         // parsing failed, or room doesn't exist
-
+        
         return res.sendStatus(404);
+    }
+    
+    
+    // add the user to list if they aren't already in lobby
+    // make sure the number of users is limited
+    // if not, redirect back to room-browser
+    if(room.obj.users.indexOf(user.obj.sessionID) === -1) {
+        if(room.obj.users.length >= room.obj.maxUsers) {
+            return res.redirect('/rooms?err=full');
+        } else {
+            user.obj.roomID = id;
+            room.obj.users.push(user.obj.sessionID);
+        }
     }
 
     res.render('room', {currentUser: user.obj, room: room.obj, users: users});
+});
+
+app.get('/room/:id/game', function(req, res) {
+    let user = users.search(req.sessionID);
+
+    if(!user) {
+        return res.redirect('/');
+    }
+
+    let id = Number(req.params.id);
+    let room = null;
+    
+    if(id == NaN || id < 0 || !(room = rooms.search(id))) {
+        return res.sendStatus(404);
+    }
+
+    if(!room.obj.inProgress) {
+        // game hasn't begun yet, redirect to lobby
+
+        return res.redirect(`/room/${id}`);
+    }
 });
 
 app.post('/login', function(req, res) {
