@@ -121,6 +121,11 @@ lobbyServer.on('message-send', function(msg) {
     // TODO emit the message out to all other users in the room
 });
 
+var gameServer = io.of('/game');
+gameServer.on('connection', function(socket) {
+    
+});
+
 var oll = require('./oll.js');
 
 var users = new oll.OrderedLinkedList((sessionID, user) => {return sessionID === user.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
@@ -241,6 +246,8 @@ app.get('/room/:id/game', function(req, res) {
 
         return res.redirect(`/room/${id}`);
     }
+
+    res.render('game', {room: room.obj});
 });
 
 app.post('/login', function(req, res) {
