@@ -24,7 +24,7 @@ gameBrowserServer.on('connection', function(socket) {
     let sessionID = socket.request.sessionID;
     let user = users.search(sessionID);
     if(!user) {
-        console.log("User wasn't registered. Disconnecting.")
+        console.log("User wasn't registered. Disconnecting.");
         socket.disconnect(true);
         return;
     }
@@ -43,7 +43,7 @@ lobbyServer.on('connection', function(socket) {
     let sessionID = socket.request.sessionID;
     let user = users.search(sessionID);
     if(!user) {
-        console.log("User wasn't registered. Disconnecting.")
+        console.log("User wasn't registered. Disconnecting.");
         socket.disconnect(true);
         return;
     }
@@ -114,11 +114,10 @@ lobbyServer.on('connection', function(socket) {
             lobbyServer.in(`game-${roomID}`).emit('start game', null);
         }
     });
-});
 
-// ? should this be socket.on
-lobbyServer.on('message-send', function(msg) {
-    // TODO emit the message out to all other users in the room
+    socket.on('message', function(msg) {
+        lobbyServer.in(`game-${roomID}`).emit('message', `${user.obj.username}: ${msg}`);
+    });
 });
 
 var gameServer = io.of('/game');
@@ -147,8 +146,7 @@ app.get('/', function(req, res) {
 
 app.get('/rooms', function(req, res) {
     if(!users.search(req.sessionID)) {
-        res.sendStatus(401);
-        return;
+        return res.redirect('/');
     }
 
     res.render('rooms', {rooms: rooms, error_room: req.session.error_room});
@@ -258,6 +256,7 @@ app.post('/login', function(req, res) {
         return;
     }
 
+    // ? is this still needed?
     let isNew = false;
 
     if(!users.search(req.sessionID)) {

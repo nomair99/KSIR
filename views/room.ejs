@@ -28,13 +28,15 @@
     <%
         }
     %>
-    <p id="connect"></p>
+    <br>
+    <div id="chat"></div>
+    <br>
+    <form id="chat-form">
+        <input type="text" name="chat-text" id="chat-text"> <input type="submit" value="Send" id="chat-send">
+    </form>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script>
         var socket = io('/lobby');
-        socket.on('connection', function() {
-            document.querySelector('#connect').innerHTML = "Connected";
-        });
 
         socket.on('host left', function(data) {
             // TODO show "host has left box"
@@ -46,8 +48,25 @@
             window.location = "http://localhost:3000/room/<%= room.id %>/game";
         });
 
+        socket.on('message', function(msg) {
+            // new chat message received. display it
+
+            let chat = document.querySelector('#chat');
+            let messageText = document.createTextNode(msg);
+            chat.appendChild(messageText);
+            chat.appendChild(document.createElement('br'));
+        });
+
         document.querySelector('#start-btn').addEventListener('click', function(e) {
             socket.emit('start request', null);
+        });
+
+        document.querySelector('#chat-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let msg = document.querySelector('#chat-text').value.trim();
+            if(msg !== "") {
+                socket.emit('message', msg);
+            }
         });
     </script>
 </body>
