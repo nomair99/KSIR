@@ -1,19 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
     <link rel="stylesheet" href="./styles/index.css" type="text/css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>KSIR</title>
-    <style>
-    </style>
-</head>
-<body>
-    <div id='container' class='container'>
-    <img id="logo" class="row" src="styles/ksir.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css">
+    <link rel="icon" href="./styles/ksir_icon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="./styles/ksir_icon.ico" type="image/x-icon">
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+  </head>
+  <body>
+  <div class="header">
+    <img src="./styles/ksir.png" alt="ksir" width=220px height=100%>
+    <input type="checkbox" id="chk">
+    <label for="chk" class="show-menu-btn">
+      <i class="fas fa-ellipsis-h"></i>
+    </label>
+
+    <ul class="menu">
+      <a href="home.html">Home</a>
+      <a href="#">About</a>
+      <a href="#">Services</a>
+      <a href="#">Contact</a>
+      <label for="chk" class="hide-menu-btn">
+        <i class="fas fa-times"></i>
+      </label>
+    </ul>
+  </div>
+
+<div class="content">
+    <center>
+      <!-- <p id="play">Play</p> -->
+      <a href='#' id="play">Play</a>
+    </center>
     </div>
-    <button type="button">Click Me!</button>
-</body>
+
+<!-- <footer>
+	<div class="footer-container">
+		<img src="ksir.png" alt="" class="logo">
+		<div class="social-media">
+			<a href="https://www.facebook.com"><i class="fab fa-facebook-f"></i></a>
+			<a href="https://twitter.com"><i class="fab fa-twitter"></i></a>
+			<a href="https://www.instagram.com/?hl=zh-cn"><i class="fab fa-instagram"></i></a>
+			<a href="https://www.youtube.com"><i class="fab fa-youtube"></i></a>
+			<a href="https://www.linkedin.com"><i class="fab fa-linkedin-in"></i></a>
+    </div>
+		<p class="rights-text">© 2020 Created By KSIR ALL Rights Reserved.</p>
+	</div>
+</footer> -->
+  </body>
 </html>

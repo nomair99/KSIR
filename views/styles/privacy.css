@@ -64,11 +64,11 @@
   color: #3498db;
 }
 
-#chk{
+/* #chk{
   position: absolute;
   visibility: hidden;
   z-index: -1111;
-}
+} */
 
 .content{
   background: #f1f1f1;
