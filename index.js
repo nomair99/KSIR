@@ -50,7 +50,10 @@ lobbyServer.on('connection', function(socket) {
 
     let roomID = user.obj.roomID;
     console.log(roomID);
-    if(roomID === null) {
+    let room = rooms.search(roomID);
+
+    // ? do we need to keep the first check
+    if(roomID === null || !room) {
         console.log("User didn't belong to a game room. Disconnecting.");
         socket.disconnect(true);
         return;
@@ -122,7 +125,36 @@ lobbyServer.on('connection', function(socket) {
 
 var gameServer = io.of('/game');
 gameServer.on('connection', function(socket) {
-    
+    let sessionID = socket.request.sessionID;
+    let user = users.search(sessionID);
+    if(!user) {
+        console.log("User wasn't registered. Disconnecting.");
+        socket.disconnect(true);
+        return;
+    }
+
+    let roomID = user.obj.roomID;
+    console.log(roomID);
+
+    let room = rooms.search(roomID);
+
+    // ? do we need the first check
+    if(roomID === null || !room) {
+        console.log("User didn't belong to a game room. Disconnecting.");
+        socket.disconnect(true);
+        return;
+    }
+
+    // subscribe to the game room
+    socket.join(`game-${roomID}`);
+
+    // TODO initialize game state
+
+    socket.on('end turn', function(data) {
+        // TODO
+    });
+
+
 });
 
 var oll = require('./oll.js');
