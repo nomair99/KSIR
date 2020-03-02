@@ -141,7 +141,7 @@ app.use(sessionMiddleware);
 app.use(express.urlencoded({extended: true}));
 
 app.get('/', function(req, res) {
-    res.render('index', {error_user: req.session.error_user});
+    res.render('map', {error_user: req.session.error_user});
 });
 
 app.get('/rooms', function(req, res) {
