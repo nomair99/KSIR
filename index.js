@@ -14,6 +14,16 @@ var sessionMiddleware = session({
     resave: false
 });
 
+app.use(express.static(path.join(__dirname, "views")));
+
+var oll = require('./oll.js');
+
+var users = new oll.OrderedLinkedList((sessionID, user) => {return sessionID === user.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
+var rooms = new oll.OrderedLinkedList((id, room) => {return id === room.id;}, (id, room) => {return id > room.id;});
+var roomIdCounter = 0;
+
+var getMap = require('./map.js').getMap;
+
 var io = require('socket.io')(http);
 io.use(function(socket, next) {
     sessionMiddleware(socket.request, socket.request.res, next);
@@ -32,7 +42,6 @@ gameBrowserServer.on('connection', function(socket) {
     gameBrowserServer.emit('user-joined', `${user.obj.username} joined the lobby.`);
 });
 
-app.use(express.static(path.join(__dirname, "views")));
 
 // the /lobby namespace handles individual game lobbies
 // each room inside the namespace represents a single lobby
@@ -58,7 +67,7 @@ lobbyServer.on('connection', function(socket) {
         socket.disconnect(true);
         return;
     }
-
+    
     // subscribe to the game room
     socket.join(`game-${roomID}`);
 
@@ -157,11 +166,10 @@ gameServer.on('connection', function(socket) {
 
 });
 
-var oll = require('./oll.js');
-
-var users = new oll.OrderedLinkedList((sessionID, user) => {return sessionID === user.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
-var rooms = new oll.OrderedLinkedList((id, room) => {return id === room.id;}, (id, room) => {return id > room.id;});
-var roomIdCounter = 0;
+var MapTestServer = io.of('/test-map');
+MapTestServer.on('connection', function(socket) {
+    socket.emit('nodes', getMap()); // TODO add arg
+});
 
 io.on('connection', function(socket) {
     console.log(socket.request.sessionID);
@@ -279,6 +287,10 @@ app.get('/room/:id/game', function(req, res) {
     }
 
     res.render('game', {room: room.obj});
+});
+
+app.get('/testmap', function(req, res) {
+    res.render('test-map', {});
 });
 
 app.post('/login', function(req, res) {
