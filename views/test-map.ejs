@@ -11,6 +11,8 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
     <script>
         var regions = {};
+        var selectedRegion = null;
+        var neighborRegions = [];
         var numberRegex = /-?[0-9]+\.?[0-9]*/g;
 
         window.addEventListener('load', function() {
@@ -30,6 +32,9 @@
             var neighborHoverStyle = {
                 fill: "#A8BED5"
             };
+            var selectedStyle = {
+                fill: "#E8E889"
+            };
             
             socket = io('/test-map');
             socket.on('map', function(graph) {
@@ -46,20 +51,53 @@
                     map.text(centerX, centerY, graph.nodes[i].obj.troops);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
-                        regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
+                        // ? what if two regions have the same name
+                        if(graph.nodes[i].obj.name !== selectedRegion) {
+                            regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
+                        }
+                        // for(let j = 0; j < graph.nodes.length; j++) {
+                        //     if(graph.adjacencyMatrix[i][j]) {
+                        //         regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                        //     }
+                        // }
+                    }, true);
+                    regions[graph.nodes[i].obj.name][0].addEventListener('click', function() {
+                        
+                        // clear all styles
                         for(let j = 0; j < graph.nodes.length; j++) {
-                            if(graph.adjacencyMatrix[i][j]) {
-                                regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                            regions[graph.nodes[j].obj.name].animate(style, 0);
+                        }
+
+                        if(graph.nodes[i].obj.name !== selectedRegion) {
+                            for(let j = 0; j < graph.nodes.length; j++) {
+                                if(graph.adjacencyMatrix[i][j]) {
+                                    neighborRegions.push(graph.nodes[j].obj.name);
+                                    regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                                }
                             }
+    
+                            regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                            selectedRegion = graph.nodes[i].obj.name;
+                        } else {
+                            selectedRegion = null;
+                            neighborRegions = [];
                         }
                     }, true);
+
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
-                        regions[graph.nodes[i].obj.name].animate(style, 0);
-                        for(let j = 0; j < graph.nodes.length; j++) {
-                            if(graph.adjacencyMatrix[i][j]) {
-                                regions[graph.nodes[j].obj.name].animate(style, 0);
-                            }
+                        
+                        if(graph.nodes[i].obj.name === selectedRegion) {
+                            regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                        } else if(neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                            regions[graph.nodes[i].obj.name].animate(neighborHoverStyle, 0);
+                        } else {
+                            regions[graph.nodes[i].obj.name].animate(style, 0);
                         }
+                        // for(let j = 0; j < graph.nodes.length; j++) {
+                        //     if(graph.adjacencyMatrix[i][j]) {
+                        //         regions[graph.nodes[j].obj.name].animate(style, 0);
+                        //     }
+                        // }
                     }, true);
                 }
             });
