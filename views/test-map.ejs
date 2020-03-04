@@ -11,6 +11,7 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
     <script>
         var regions = {};
+        var numberRegex = /-?[0-9]+\.?[0-9]*/g;
 
         window.addEventListener('load', function() {
             let container = document.getElementById('map');
@@ -36,6 +37,14 @@
                 for(let i = 0; i < graph.nodes.length; i++) {
                     regions[graph.nodes[i].obj.name] = map.path(graph.nodes[i].obj.path);
                     regions[graph.nodes[i].obj.name].attr(style);
+                    let bBox = regions[graph.nodes[i].obj.name].getBBox();
+
+                    // draw circle with number of troops
+                    let centerX = bBox.x + bBox.width / 2;
+                    let centerY = bBox.y + bBox.height / 2;
+                    map.circle(centerX, centerY, 10).attr({fill: "#A8BED5"});
+                    map.text(centerX, centerY, graph.nodes[i].obj.troops);
+
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
                         regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
                         for(let j = 0; j < graph.nodes.length; j++) {

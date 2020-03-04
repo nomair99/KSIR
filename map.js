@@ -4,7 +4,7 @@ GraphNode = graph.GraphNode;
 Graph = graph.Graph;
 
 function getMap() {
-    // ! dummy get map function that returns the original risk map
+    // ! dummy get map function that returns the map of france
 
     let nodes = [];
 
