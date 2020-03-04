@@ -10,21 +10,48 @@
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
     <script>
+        var regions = {};
+
         window.addEventListener('load', function() {
             let container = document.getElementById('map');
-            map = new Raphael(container, 500, 300);
-            style = {
+            map = new Raphael(container, 620, 600);
+            
+            var style = {
                 fill: "#ddd",
                 stroke: "#aaa",
                 "stroke-width": 1,
                 "stroke-linejoin": "round",
                 cursor: "pointer"
             };
+            var hoverStyle = {
+                fill: "#FF7C78"
+            };
+            var neighborHoverStyle = {
+                fill: "#A8BED5"
+            };
             
             socket = io('/test-map');
-            socket.on('nodes', function(nodes) {
-                for(let i = 0; i < nodes.length; i++) {
-                    map.path(nodes[i].path).attr(style);
+            socket.on('map', function(graph) {
+                // console.log(graph.adjacencyMatrix);
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    regions[graph.nodes[i].obj.name] = map.path(graph.nodes[i].obj.path);
+                    regions[graph.nodes[i].obj.name].attr(style);
+                    regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
+                        regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
+                        for(let j = 0; j < graph.nodes.length; j++) {
+                            if(graph.adjacencyMatrix[i][j]) {
+                                regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                            }
+                        }
+                    }, true);
+                    regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
+                        regions[graph.nodes[i].obj.name].animate(style, 0);
+                        for(let j = 0; j < graph.nodes.length; j++) {
+                            if(graph.adjacencyMatrix[i][j]) {
+                                regions[graph.nodes[j].obj.name].animate(style, 0);
+                            }
+                        }
+                    }, true);
                 }
             });
         });

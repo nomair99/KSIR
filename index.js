@@ -72,7 +72,6 @@ lobbyServer.on('connection', function(socket) {
     socket.join(`game-${roomID}`);
 
     // ? can a user get added multiple times
-    let room = rooms.search(roomID);
     room.obj.users.push(sessionID);
 
     socket.on('disconnect', function() {
@@ -168,7 +167,8 @@ gameServer.on('connection', function(socket) {
 
 var MapTestServer = io.of('/test-map');
 MapTestServer.on('connection', function(socket) {
-    socket.emit('nodes', getMap()); // TODO add arg
+    console.log('in test-map');
+    socket.emit('map', getMap()); // TODO add arg
 });
 
 io.on('connection', function(socket) {
