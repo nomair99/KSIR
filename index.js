@@ -16,6 +16,8 @@ var sessionMiddleware = session({
 
 app.use(express.static(path.join(__dirname, "views")));
 
+var GameState = require('./game-state.js').GameState;
+
 var oll = require('./oll.js');
 
 var users = new oll.OrderedLinkedList((sessionID, user) => {return sessionID === user.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
@@ -155,8 +157,57 @@ gameServer.on('connection', function(socket) {
 
     // subscribe to the game room
     socket.join(`game-${roomID}`);
+    let gameRoom = gameServer.in(`game-${roomID}`);
 
-    // TODO initialize game state
+    // ! loads the predefined france map
+    room.obj.gameState = new GameState(getMap());
+
+    // send the map to all players
+    gameRoom.emit('map', room.obj.gameState.map);
+
+    socket.on('attack', function(data) {
+        // TODO perform checks
+        // move troops from one territory to the other
+        // don't do ownership checks yet
+
+        console.log('got attack event');
+        
+        // ? what if two regions have the same name
+        // disconnect if the regions are the same
+        if(data.from === data.to) {
+            console.log('regions same');
+            socket.disconnect(true);
+            return;
+        }
+        let indexFrom = null, indexTo = null;
+
+        for(let i = 0; i < room.obj.gameState.map.nodes.length; i++) {
+            if(room.obj.gameState.map.nodes[i].obj.name === data.from) {
+                indexFrom = i;
+            }
+            if(room.obj.gameState.map.nodes[i].obj.name === data.to) {
+                indexTo = i;
+            }
+        }
+
+        // disconnect if region did not exist 
+        if(indexFrom === null || indexTo === null) {
+            console.log('region does not exist');
+            socket.disconnect(true);
+            return;
+        }
+
+        if(room.obj.gameState.map.nodes[indexFrom].obj.troops <= data.num) {
+            console.log('bad troop count');
+            socket.disconnect(true);
+            return;
+        }
+
+        console.log('moving troops');
+        room.obj.gameState.moveTroops(indexFrom, indexTo, data.num);
+
+        gameRoom.emit('attack', data);
+    });
 
     socket.on('end turn', function(data) {
         // TODO
@@ -168,7 +219,61 @@ gameServer.on('connection', function(socket) {
 var MapTestServer = io.of('/test-map');
 MapTestServer.on('connection', function(socket) {
     console.log('in test-map');
-    socket.emit('map', getMap()); // TODO add arg
+    
+    socket.join('game-1');
+
+    gameRoom = MapTestServer.in('game-1');
+    room = {obj: {}};
+    
+    // ! loads the predefined france map
+    room.obj.gameState = new GameState(getMap());
+
+    // send the map to all players
+    gameRoom.emit('map', room.obj.gameState.map);
+
+    socket.on('attack', function(data) {
+        // TODO perform checks
+        // move troops from one territory to the other
+        // don't do ownership checks yet
+
+        console.log('got attack event');
+        
+        // ? what if two regions have the same name
+        // disconnect if the regions are the same
+        if(data.from === data.to) {
+            console.log('regions same');
+            socket.disconnect(true);
+            return;
+        }
+        let indexFrom = null, indexTo = null;
+
+        for(let i = 0; i < room.obj.gameState.map.nodes.length; i++) {
+            if(room.obj.gameState.map.nodes[i].obj.name === data.from) {
+                indexFrom = i;
+            }
+            if(room.obj.gameState.map.nodes[i].obj.name === data.to) {
+                indexTo = i;
+            }
+        }
+
+        // disconnect if region did not exist 
+        if(indexFrom === null || indexTo === null) {
+            console.log('region does not exist');
+            socket.disconnect(true);
+            return;
+        }
+
+        if(room.obj.gameState.map.nodes[indexFrom].obj.troops <= data.num) {
+            console.log('bad troop count');
+            socket.disconnect(true);
+            return;
+        }
+
+        console.log('moving troops');
+        room.obj.gameState.moveTroops(indexFrom, indexTo, data.num);
+
+        gameRoom.emit('attack', data);
+    });
 });
 
 io.on('connection', function(socket) {
