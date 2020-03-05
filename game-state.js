@@ -3,6 +3,10 @@ var GameState = function(map) {
 
     this.map = map;
 
+    this.killTroops = function(index, num) {
+        this.map.nodes[index].obj.troops -= num;
+    };
+
     this.moveTroops = function(from, to, num) {
 
         // ? should there be checks here

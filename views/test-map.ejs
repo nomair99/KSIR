@@ -41,7 +41,6 @@
             socket = io('/test-map');
             socket.on('map', function(g) {
 
-                // TODO refactor
                 graph = g;
 
                 // console.log(graph.adjacencyMatrix);
@@ -96,8 +95,6 @@
                                 neighborRegions = [];
                             }
                         }
-
-
                     }, true);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
@@ -118,12 +115,12 @@
                 for(let i = 0; i < graph.nodes.length; i++) {
                     if(graph.nodes[i].obj.name === data.from) {
                         console.log('Updating marker');
-                        graph.nodes[i].obj.troops -= data.num;
+                        graph.nodes[i].obj.troops -= data.attackingDeaths;
                         troopMarkers[data.from].attr({text: graph.nodes[i].obj.troops})
                     }
                     if(graph.nodes[i].obj.name === data.to) {
                         console.log('Updating marker');
-                        graph.nodes[i].obj.troops += data.num;
+                        graph.nodes[i].obj.troops -= data.defendingDeaths;
                         troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops})
                     }
                 }

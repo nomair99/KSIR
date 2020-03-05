@@ -16,6 +16,7 @@ var sessionMiddleware = session({
 
 app.use(express.static(path.join(__dirname, "views")));
 
+var utils = require('./utils.js');
 var GameState = require('./game-state.js').GameState;
 
 var oll = require('./oll.js');
@@ -232,9 +233,17 @@ MapTestServer.on('connection', function(socket) {
     gameRoom.emit('map', room.obj.gameState.map);
 
     socket.on('attack', function(data) {
-        // TODO perform checks
         // move troops from one territory to the other
-        // don't do ownership checks yet
+        // TODO do ownership checks yet
+        // make it an actual attack
+
+        // TODO check that the number of attacking troops is between 1 and 3
+        // take upto 2 defenders
+        // do corresponding dice rolls
+        // sort arrays and compare corresponding positions. be aware of number of troops on both sides
+        // decrement troops as necessary
+        // don't move troops yet if all troops in defending territory die
+        // send back the CHANGE in number of troops in response
 
         console.log('got attack event');
         
@@ -263,16 +272,53 @@ MapTestServer.on('connection', function(socket) {
             return;
         }
 
-        if(room.obj.gameState.map.nodes[indexFrom].obj.troops <= data.num) {
+        if(data.num < 1 || data.num > 3 || room.obj.gameState.map.nodes[indexFrom].obj.troops <= data.num) {
             console.log('bad troop count');
             socket.disconnect(true);
             return;
         }
 
-        console.log('moving troops');
-        room.obj.gameState.moveTroops(indexFrom, indexTo, data.num);
+        let attackingTroops = data.num;
+        let defendingTroops = Math.min(2, room.obj.gameState.map.nodes[indexTo].obj.troops)
+        // defender defends with at most 2 troops
 
-        gameRoom.emit('attack', data);
+        let attackingRolls = [], defendingRolls = [];
+        
+        // roll die
+        for(let j = 0; j < attackingTroops; j++) {
+            attackingRolls.push(utils.dieRoll());
+        }
+        for(let k = 0; k < defendingTroops; k++) {
+            defendingRolls.push(utils.dieRoll());
+        }
+
+        attackingRolls.sort((a, b) => {return b-a;});
+        defendingRolls.sort((a, b) => {return b-a;});
+
+        // find how many troops died for each player
+        let attackingDeaths = 0, defendingDeaths = 0;
+        for(let l = 0; l < Math.min(attackingTroops, defendingTroops); l++) {
+            if(attackingRolls[l] > defendingRolls[l]) {
+                defendingDeaths++;
+            } else {
+                attackingDeaths++;
+            }
+        }
+
+        console.log(`attacking region lost ${attackingDeaths}`);
+        console.log(`defending region lost ${defendingDeaths}`);
+        room.obj.gameState.killTroops(indexFrom, attackingDeaths);
+        room.obj.gameState.killTroops(indexTo, defendingDeaths);
+
+        // console.log('moving troops');
+        // room.obj.gameState.moveTroops(indexFrom, indexTo, data.num);
+
+        gameRoom.emit('attack', {
+            from: data.from,
+            to: data.to,
+            attackingDeaths: attackingDeaths,
+            defendingDeaths: defendingDeaths
+        });
     });
 });
 
