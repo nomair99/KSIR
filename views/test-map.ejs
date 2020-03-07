@@ -20,7 +20,7 @@
         window.addEventListener('load', function() {
             let container = document.getElementById('map');
             map = new Raphael(container, 620, 600);
-            
+
             var style = {
                 fill: "#ddd",
                 stroke: "#aaa",
@@ -57,14 +57,14 @@
                     troopMarkers[graph.nodes[i].obj.name] = map.text(centerX, centerY, graph.nodes[i].obj.troops);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
-                        
+
                         // ? what if two regions have the same name
                         if(graph.nodes[i].obj.name !== selectedRegion) {
                             regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
                         }
                     }, true);
                     regions[graph.nodes[i].obj.name][0].addEventListener('click', function() {
-                        
+
                         // clear all styles
                         for(let j = 0; j < graph.nodes.length; j++) {
                             regions[graph.nodes[j].obj.name].animate(style, 0);
@@ -88,7 +88,7 @@
                                         regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
                                     }
                                 }
-        
+
                                 regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
                                 selectedRegion = graph.nodes[i].obj.name;
                             } else {
@@ -101,7 +101,7 @@
                     }, true);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
-                        
+
                         if(graph.nodes[i].obj.name === selectedRegion) {
                             regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
                         } else if(neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {

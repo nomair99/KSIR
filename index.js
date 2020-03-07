@@ -47,7 +47,7 @@ gameBrowserServer.on('connection', function(socket) {
 
 // the /lobby namespace handles individual game lobbies
 // each room inside the namespace represents a single lobby
-// the namespace room is tied to the corresponding room object 
+// the namespace room is tied to the corresponding room object
 // and every user socket is subscribed to it
 var lobbyServer = io.of('/lobby');
 lobbyServer.on('connection', function(socket) {
@@ -69,7 +69,7 @@ lobbyServer.on('connection', function(socket) {
         socket.disconnect(true);
         return;
     }
-    
+
     // subscribe to the game room
     socket.join(`game-${roomID}`);
 
@@ -83,7 +83,7 @@ lobbyServer.on('connection', function(socket) {
         let room = rooms.search(user.obj.roomID);
         if(room) {
             // sanity check
-            
+
             if(user.obj.sessionID === room.obj.host) {
                 // the host left, destroy the room
 
@@ -171,7 +171,7 @@ gameServer.on('connection', function(socket) {
         // don't do ownership checks yet
 
         console.log('got attack event');
-        
+
         // ? what if two regions have the same name
         // disconnect if the regions are the same
         if(data.from === data.to) {
@@ -190,7 +190,7 @@ gameServer.on('connection', function(socket) {
             }
         }
 
-        // disconnect if region did not exist 
+        // disconnect if region did not exist
         if(indexFrom === null || indexTo === null) {
             console.log('region does not exist');
             socket.disconnect(true);
@@ -219,12 +219,12 @@ gameServer.on('connection', function(socket) {
 var MapTestServer = io.of('/test-map');
 MapTestServer.on('connection', function(socket) {
     console.log('in test-map');
-    
+
     socket.join('game-1');
 
     gameRoom = MapTestServer.in('game-1');
     room = {obj: {}};
-    
+
     // ! loads the predefined france map
     room.obj.gameState = new GameState(getMap());
 
@@ -237,7 +237,7 @@ MapTestServer.on('connection', function(socket) {
         // don't do ownership checks yet
 
         console.log('got attack event');
-        
+
         // ? what if two regions have the same name
         // disconnect if the regions are the same
         if(data.from === data.to) {
@@ -256,7 +256,7 @@ MapTestServer.on('connection', function(socket) {
             }
         }
 
-        // disconnect if region did not exist 
+        // disconnect if region did not exist
         if(indexFrom === null || indexTo === null) {
             console.log('region does not exist');
             socket.disconnect(true);
@@ -339,23 +339,21 @@ app.post('/createroom', function(req, res) {
 app.get('/room/:id', function(req, res) {
     let user = users.search(req.sessionID);
 
-    if(!user) {
-        return res.redirect('/');
+    if(!user){
+      return res.redirect('/');
     }
 
-    
     console.log(`room acccessed by: ${user.obj.sessionID}`);
-    
+
     let id = Number(req.params.id);
     let room = null;
-    
+
     if(id == NaN || id < 0 || !(room = rooms.search(id))) {
         // parsing failed, or room doesn't exist
-        
         return res.sendStatus(404);
     }
-    
-    
+
+
     // add the user to list if they aren't already in lobby
     // make sure the number of users is limited
     // if not, redirect back to room-browser
@@ -375,23 +373,43 @@ app.get('/room/:id/game', function(req, res) {
     let user = users.search(req.sessionID);
 
     if(!user) {
+      if(process.env.NODE_ENV!='development'){
         return res.redirect('/');
+      }
+      users.insert({
+          sessionID: req.sessionID,
+          username: 'user'
+      })
     }
 
     let id = Number(req.params.id);
     let room = null;
-    
+
     if(id == NaN || id < 0 || !(room = rooms.search(id))) {
+
+      if(process.env.NODE_ENV!='development') {
         return res.sendStatus(404);
+      }
+
+      rooms.insert({
+          id: id,
+          name: 'name',
+          //host: user.obj.sessionID,
+          users: [],
+          inProgress: true,
+          maxUsers: 6
+      });
+
     }
 
+    if(room!=null){
     if(!room.obj.inProgress) {
         // game hasn't begun yet, redirect to lobby
-
         return res.redirect(`/room/${id}`);
     }
 
     res.render('game', {room: room.obj});
+  }
 });
 
 app.get('/testmap', function(req, res) {
@@ -399,6 +417,7 @@ app.get('/testmap', function(req, res) {
 });
 
 app.post('/login', function(req, res) {
+
     if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length<2 || req.body.username.length>15){
         req.session.error_user = 'Invalid username';
         res.redirect('/');
