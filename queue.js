@@ -24,12 +24,22 @@ var Queue = function() {
 
     this.dequeue = function() {
         if(this.head) {
+            let obj = this.head.obj;
             this.head = this.head.behind;
             if(!this.head) {
                 // the queue is empty now
                 this.tail = null;
             }
+
+            return obj;
         }
+
+        // queue is empty
+        return null;
+    };
+
+    this.isEmpty = function() {
+        return this.head === null;
     };
 };
 
