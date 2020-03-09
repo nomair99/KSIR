@@ -6,10 +6,126 @@
     <title><%= room.name %>></title>
 </head>
 <body>
-    Game.
+    <div id="map"></div>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
     <script>
-        var socket = io('/game');
+        var graph;
+        var regions = {};
+        var selectedRegion = null;
+        var neighborRegions = [];
+        var troopMarkers = {};
+        var numberRegex = /-?[0-9]+\.?[0-9]*/g;
+
+        window.addEventListener('load', function() {
+            let container = document.getElementById('map');
+            map = new Raphael(container, 620, 600);
+
+            var style = {
+                fill: "#ddd",
+                stroke: "#aaa",
+                "stroke-width": 1,
+                "stroke-linejoin": "round",
+                cursor: "pointer"
+            };
+            var hoverStyle = {
+                fill: "#FF7C78"
+            };
+            var neighborHoverStyle = {
+                fill: "#A8BED5"
+            };
+            var selectedStyle = {
+                fill: "#E8E889"
+            };
+            
+            socket = io('/game');
+            socket.on('map', function(g) {
+
+                graph = g;
+
+                // console.log(graph.adjacencyMatrix);
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    regions[graph.nodes[i].obj.name] = map.path(graph.nodes[i].obj.path);
+                    regions[graph.nodes[i].obj.name].attr(style);
+                    let bBox = regions[graph.nodes[i].obj.name].getBBox();
+
+                    // draw circle with number of troops
+                    let centerX = bBox.x + bBox.width / 2;
+                    let centerY = bBox.y + bBox.height / 2;
+                    map.circle(centerX, centerY, 10).attr({fill: "#A8BED5"});
+                    troopMarkers[graph.nodes[i].obj.name] = map.text(centerX, centerY, graph.nodes[i].obj.troops);
+
+                    regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
+
+                        // ? what if two regions have the same name
+                        if(graph.nodes[i].obj.name !== selectedRegion) {
+                            regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
+                        }
+                    }, true);
+                    regions[graph.nodes[i].obj.name][0].addEventListener('click', function() {
+
+                        // clear all styles
+                        for(let j = 0; j < graph.nodes.length; j++) {
+                            regions[graph.nodes[j].obj.name].animate(style, 0);
+                        }
+
+                        // TODO show a popup to select the number of troops to move
+                        if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                            // a region was selected and the user then clicked on a neighboring region
+
+                            let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
+                            console.log(payload);
+                            socket.emit('attack', payload);
+
+                            selectedRegion = null;
+                            neighborRegions = [];
+                        } else {
+                            if(graph.nodes[i].obj.name !== selectedRegion) {
+                                for(let j = 0; j < graph.nodes.length; j++) {
+                                    if(graph.adjacencyMatrix[i][j]) {
+                                        neighborRegions.push(graph.nodes[j].obj.name);
+                                        regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                                    }
+                                }
+
+                                regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                                selectedRegion = graph.nodes[i].obj.name;
+                            } else {
+                                selectedRegion = null;
+                                neighborRegions = [];
+                            }
+                        }
+                    }, true);
+
+                    regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
+
+                        if(graph.nodes[i].obj.name === selectedRegion) {
+                            regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                        } else if(neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                            regions[graph.nodes[i].obj.name].animate(neighborHoverStyle, 0);
+                        } else {
+                            regions[graph.nodes[i].obj.name].animate(style, 0);
+                        }
+                    }, true);
+                }
+            });
+
+            socket.on('attack', function(data) {
+                console.log('Got attack event');
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    if(graph.nodes[i].obj.name === data.from) {
+                        console.log('Updating marker');
+                        graph.nodes[i].obj.troops -= data.attackingDeaths;
+                        troopMarkers[data.from].attr({text: graph.nodes[i].obj.troops})
+                    }
+                    if(graph.nodes[i].obj.name === data.to) {
+                        console.log('Updating marker');
+                        graph.nodes[i].obj.troops -= data.defendingDeaths;
+                        troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops})
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>
