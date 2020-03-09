@@ -44,7 +44,7 @@ var Graph = function(nodes, edges) {
                 }
             }
 
-            yield this.nodes[nodeIndex].obj;
+            yield nodeIndex;
         };
     };
 };
