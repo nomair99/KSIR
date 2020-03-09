@@ -3,6 +3,9 @@ var app = express();
 var path = require("path");
 var http = require('http').createServer(app);
 
+var dotenv = require('dotenv');
+dotenv.config();
+
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
 var sessionStore = new MemoryStore();
@@ -433,29 +436,29 @@ app.get('/room/:id/game', function(req, res) {
 
     if(id == NaN || id < 0 || !(room = rooms.search(id))) {
 
-      if(process.env.NODE_ENV!='development') {
-        return res.sendStatus(404);
-      }
+        console.log(process.env.NODE_ENV);    
+        if(process.env.NODE_ENV !== 'development') {
+            return res.sendStatus(404);
+        }
 
-      rooms.insert({
-          id: id,
-          name: 'name',
-          //host: user.obj.sessionID,
-          users: [],
-          inProgress: true,
-          maxUsers: 6
-      });
+        rooms.insert({
+            id: id,
+            name: 'name',
+            //host: user.obj.sessionID,
+            users: [],
+            inProgress: true,
+            maxUsers: 6
+        });
 
+        room = rooms.search(id);
     }
 
-    if(room!=null){
     if(!room.obj.inProgress) {
         // game hasn't begun yet, redirect to lobby
         return res.redirect(`/room/${id}`);
     }
 
     res.render('game', {room: room.obj});
-  }
 });
 
 app.get('/testmap', function(req, res) {
