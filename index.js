@@ -164,89 +164,14 @@ gameServer.on('connection', function(socket) {
     let gameRoom = gameServer.in(`game-${roomID}`);
 
     // ! loads the predefined france map
-    room.obj.gameState = new GameState(getMap());
+    room.obj.gameState = new GameState(getMap(), room.obj.users);
 
     // send the map to all players
     gameRoom.emit('map', room.obj.gameState.map);
 
     socket.on('attack', function(data) {
-        // TODO perform checks
+        // TODO do ownership checks
         // move troops from one territory to the other
-        // don't do ownership checks yet
-
-        console.log('got attack event');
-
-        // ? what if two regions have the same name
-        // disconnect if the regions are the same
-        if(data.from === data.to) {
-            console.log('regions same');
-            socket.disconnect(true);
-            return;
-        }
-        let indexFrom = null, indexTo = null;
-
-        for(let i = 0; i < room.obj.gameState.map.nodes.length; i++) {
-            if(room.obj.gameState.map.nodes[i].obj.name === data.from) {
-                indexFrom = i;
-            }
-            if(room.obj.gameState.map.nodes[i].obj.name === data.to) {
-                indexTo = i;
-            }
-        }
-
-        // disconnect if region did not exist
-        if(indexFrom === null || indexTo === null) {
-            console.log('region does not exist');
-            socket.disconnect(true);
-            return;
-        }
-
-        if(room.obj.gameState.map.nodes[indexFrom].obj.troops <= data.num) {
-            console.log('bad troop count');
-            socket.disconnect(true);
-            return;
-        }
-
-        console.log('moving troops');
-        room.obj.gameState.moveTroops(indexFrom, indexTo, data.num);
-
-        gameRoom.emit('attack', data);
-    });
-
-    socket.on('end turn', function(data) {
-        // TODO
-    });
-
-
-});
-
-var MapTestServer = io.of('/test-map');
-MapTestServer.on('connection', function(socket) {
-    console.log('in test-map');
-
-    socket.join('game-1');
-
-    gameRoom = MapTestServer.in('game-1');
-    room = {obj: {}};
-
-    // ! loads the predefined france map
-    room.obj.gameState = new GameState(getMap());
-
-    // send the map to all players
-    gameRoom.emit('map', room.obj.gameState.map);
-
-    socket.on('attack', function(data) {
-        // move troops from one territory to the other
-        // TODO do ownership checks yet
-        // make it an actual attack
-
-        // TODO check that the number of attacking troops is between 1 and 3
-        // take upto 2 defenders
-        // do corresponding dice rolls
-        // sort arrays and compare corresponding positions. be aware of number of troops on both sides
-        // decrement troops as necessary
-        // don't move troops yet if all troops in defending territory die
-        // send back the CHANGE in number of troops in response
 
         console.log('got attack event');
 
@@ -313,15 +238,16 @@ MapTestServer.on('connection', function(socket) {
         room.obj.gameState.killTroops(indexFrom, attackingDeaths);
         room.obj.gameState.killTroops(indexTo, defendingDeaths);
 
-        // console.log('moving troops');
-        // room.obj.gameState.moveTroops(indexFrom, indexTo, data.num);
-
         gameRoom.emit('attack', {
             from: data.from,
             to: data.to,
             attackingDeaths: attackingDeaths,
             defendingDeaths: defendingDeaths
         });
+    });
+
+    socket.on('end turn', function(data) {
+        // TODO
     });
 });
 
@@ -353,8 +279,6 @@ app.post('/createroom', function(req, res) {
         return;
     }
     if(!(/^[a-zA-Z0-9]+$/.test(req.body.create_room_name)) || req.body.create_room_name.length<2 || req.body.create_room_name.length>15){
-        // TODO send correct error code for missing data in request
-        //res.sendStatus(403);
         req.session.error_room = 'Invalid room name';
         res.redirect('rooms');
         return;
@@ -421,17 +345,20 @@ app.get('/room/:id', function(req, res) {
 app.get('/room/:id/game', function(req, res) {
     let user = users.search(req.sessionID);
 
+    let id = Number(req.params.id);
+
     if(!user) {
-      if(process.env.NODE_ENV!='development'){
-        return res.redirect('/');
-      }
-      users.insert({
-          sessionID: req.sessionID,
-          username: 'user'
-      })
+        if(process.env.NODE_ENV !== 'development') {
+            return res.redirect('/');
+        }
+        users.insert({
+            sessionID: req.sessionID,
+            username: 'dev',
+            roomID: id
+        });
+        user = users.search(req.sessionID);
     }
 
-    let id = Number(req.params.id);
     let room = null;
 
     if(id == NaN || id < 0 || !(room = rooms.search(id))) {
@@ -443,9 +370,9 @@ app.get('/room/:id/game', function(req, res) {
 
         rooms.insert({
             id: id,
-            name: 'name',
-            //host: user.obj.sessionID,
-            users: [],
+            name: 'dev game',
+            host: user.obj.sessionID,
+            users: [user.obj.sessionID],
             inProgress: true,
             maxUsers: 6
         });
