@@ -335,6 +335,14 @@ app.get('/', function(req, res) {
     res.render('index', {error_user: req.session.error_user});
 });
 
+app.get('/privacy', function(req, res) {
+    res.render('privacy', {});
+})
+
+app.get('/serverrooms', function(req, res) {
+    res.render('serverrooms', {});
+})
+
 app.get('/rooms', function(req, res) {
     if(!users.search(req.sessionID)) {
         return res.redirect('/');
