@@ -19,9 +19,9 @@
     </label>
 
     <ul class="menu">
-      <a href="home.html">Home</a>
+      <a href="/">Home</a>
       <a href="#">About</a>
-      <a href="localhost:3000/privacy.ejs">Privacy</a>
+      <a href="/privacy">Privacy</a>
       <a href="#">Contact</a>
       <label for="chk" class="hide-menu-btn">
         <i class="fas fa-times"></i>
@@ -31,7 +31,6 @@
 
 <div class="content">
     <center>
-      <!-- <p id="play">Play</p> -->
       <a href='#' id="play" onclick="getUsername()">Play</a>
     </center>
     </div>
@@ -40,7 +39,7 @@
       function getUsername() {
         var username = prompt('Enter a username');
         if(username != null) {
-          ;
+          window.location.href = "/serverrooms";
         }
       }
     </script>
