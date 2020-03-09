@@ -1,3 +1,5 @@
+var Queue = require('./queue.js').Queue;
+
 var GraphNode = function(obj) {
     this.obj = obj;
 };
@@ -25,6 +27,26 @@ var Graph = function(nodes, edges) {
         this.adjacencyMatrix[edges[k][0]][edges[k][1]] = true;
         this.adjacencyMatrix[edges[k][1]][edges[k][0]] = true;
     }
+
+    this.getFullTraversal = function*() {
+        let nodeIndex;
+        let visitedNodes = new Map();
+        let visitQueue = new Queue();
+        visitQueue.enqueue(0);
+
+        while(!visitQueue.isEmpty()) {
+            nodeIndex = visitQueue.dequeue();
+            visitedNodes.set(nodeIndex, true);
+            for(let i = 0; i < this.nodes.length; i++) {
+                if(this.adjacencyMatrix[nodeIndex][i] && !visitedNodes.has(i)) {
+                    visitQueue.enqueue(i);
+                    visitedNodes.set(i, true);
+                }
+            }
+
+            yield nodeIndex;
+        };
+    };
 };
 
 exports.GraphNode = GraphNode;
