@@ -7,6 +7,7 @@
 </head>
 <body>
     <div id="map"></div>
+    <button id="reinbtn">Reinforce</button>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
     <script>
@@ -15,38 +16,63 @@
         var selectedRegion = null;
         var neighborRegions = [];
         var troopMarkers = {};
-        var numberRegex = /-?[0-9]+\.?[0-9]*/g;
+        var playerList, currentPlayer;
+        // var playerList = room.users;
+        // var currentPlayer = playerList[0];
+        var phase = 'reinforcement';
+
+        var style = {
+            fill: "#ddd",
+            stroke: "#aaa",
+            "stroke-width": 1,
+            "stroke-linejoin": "round",
+            cursor: "pointer"
+        };
+        var hoverStyle = {
+            fill: "#FF7C78"
+        };
+        var neighborHoverStyle = {
+            fill: "#A8BED5"
+        };
+        var selectedStyle = {
+            fill: "#E8E889"
+        };
+
+        var playerStyles = [];
+        playerStyles.push({
+            fill: "#E8CE89"
+        });
+        playerStyles.push({
+            fill: "#A6FFA3"
+        });
+        playerStyles.push({
+            fill: "#89BAE8"
+        });
+        playerStyles.push({
+            fill: "#FA96FF"
+        });
 
         window.addEventListener('load', function() {
             let container = document.getElementById('map');
             map = new Raphael(container, 620, 600);
-
-            var style = {
-                fill: "#ddd",
-                stroke: "#aaa",
-                "stroke-width": 1,
-                "stroke-linejoin": "round",
-                cursor: "pointer"
-            };
-            var hoverStyle = {
-                fill: "#FF7C78"
-            };
-            var neighborHoverStyle = {
-                fill: "#A8BED5"
-            };
-            var selectedStyle = {
-                fill: "#E8E889"
-            };
             
             socket = io('/game');
+
+            socket.on('player list', function(data) {
+                console.log('got player list');
+                playerList = data.playerList;
+                currentPlayer = playerList[0];
+                console.log(playerList);
+            });
+
             socket.on('map', function(g) {
 
                 graph = g;
 
-                // console.log(graph.adjacencyMatrix);
+                let playerIndex;
                 for(let i = 0; i < graph.nodes.length; i++) {
                     regions[graph.nodes[i].obj.name] = map.path(graph.nodes[i].obj.path);
-                    regions[graph.nodes[i].obj.name].attr(style);
+                    restoreStyle(graph.nodes[i]);
                     let bBox = regions[graph.nodes[i].obj.name].getBBox();
 
                     // draw circle with number of troops
@@ -121,11 +147,37 @@
                     if(graph.nodes[i].obj.name === data.to) {
                         console.log('Updating marker');
                         graph.nodes[i].obj.troops -= data.defendingDeaths;
-                        troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops})
+                        troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops});
                     }
                 }
             });
+
+            socket.on('reinforce', function(data) {
+                console.log('got reinforce event');
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    if(graph.nodes[i].obj.name === data.region) {
+                        graph.nodes[i].obj.troops += data.num;
+                        troopMarkers[data.region].attr({text: graph.nodes[i].obj.troops});
+                        break;
+                    }
+                }
+            });
+
+            document.getElementById('reinbtn').addEventListener('click', function(e) {
+                e.preventDefault();
+
+                socket.emit('reinforce', {
+                    region: 'picardie',
+                    num: 2
+                });
+            });
         });
+
+        function restoreStyle(node) {
+            let playerIndex = playerList.indexOf(node.obj.owner);
+            regions[node.obj.name].attr(style);
+            regions[node.obj.name].attr(playerStyles[playerIndex]);
+        }
     </script>
 </body>
 </html>
