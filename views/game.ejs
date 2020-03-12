@@ -92,7 +92,8 @@
 
                         // clear all styles
                         for(let j = 0; j < graph.nodes.length; j++) {
-                            regions[graph.nodes[j].obj.name].animate(style, 0);
+                            restoreStyle(graph.nodes[j]);
+                            // regions[graph.nodes[j].obj.name].animate(style, 0);
                         }
 
                         // TODO show a popup to select the number of troops to move
@@ -130,7 +131,8 @@
                         } else if(neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
                             regions[graph.nodes[i].obj.name].animate(neighborHoverStyle, 0);
                         } else {
-                            regions[graph.nodes[i].obj.name].animate(style, 0);
+                            restoreStyle(graph.nodes[i]);
+                            // regions[graph.nodes[i].obj.name].animate(style, 0);
                         }
                     }, true);
                 }

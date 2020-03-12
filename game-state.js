@@ -5,11 +5,15 @@ var GameState = function(map, playerList) {
 
     this.map = map;
     this.numPlayers = playerList.length;
-    this.playerList = playerList;
+    this.playerList = playerList.map((player) => {return {
+        player: player,
+        alive: true
+    }});
 
     this.reinforcementsRemaining = 0;
 
-    this.currentPlayer = playerList[0];
+    this.currentPlayerIndex = 0;
+    this.currentPlayer = playerList[this.currentPlayerIndex].player;
     this.phase = 'reinforcement';
 
     // TODO generate continents list
@@ -66,6 +70,13 @@ var GameState = function(map, playerList) {
         regionsLeft[chosenPlayer]--;
     }
     
+    this.switchToNextPlayer = function() {
+        do {
+            this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.playerList.length;
+            this.currentPlayer = this.playerList[this.currentPlayerIndex];
+        } while(!this.playerList[this.currentPlayerIndex].alive);
+    };
+
     this.moveTroops = function(from, to, num) {
         
         // ? should there be checks here
