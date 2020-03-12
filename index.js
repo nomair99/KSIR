@@ -214,7 +214,7 @@ gameServer.on('connection', function(socket) {
             return;
         }
 
-        if(data.num < 1 || data.num > 3 || room.obj.gameState.map.nodes[indexFrom].obj.troops <= data.num) {
+        if(!Number.isInteger(data.num) || data.num < 1 || data.num > 3 || room.obj.gameState.map.nodes[indexFrom].obj.troops <= data.num) {
             console.log('bad troop count');
             socket.disconnect(true);
             return;
@@ -270,7 +270,7 @@ gameServer.on('connection', function(socket) {
             return;
         }
 
-        if(room.obj.gameState.currentPlayer !== sessionID || room.obj.gameState.phase !== 'reinforcement') {
+        if(room.obj.gameState.currentPlayer !== user.obj.username || room.obj.gameState.phase !== 'reinforcement') {
             console.log('not reinforcement phase');
             socket.disconnect(true);
             return;
