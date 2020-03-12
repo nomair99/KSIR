@@ -422,6 +422,6 @@ app.post('/login', function(req, res) {
     res.redirect('rooms');
 });
 
-http.listen(3000, function() {
+http.listen(process.env.PORT || 3000, function() {
     console.log('listening on port 3000');
 });
