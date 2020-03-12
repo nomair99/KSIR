@@ -29,15 +29,16 @@
 <div class="content">
     <center>
       <a href='#' id="play" onclick="getUsername()">Play</a>
+      <form action="login" method="post">Enter Username
+        <input type="text" name="username" id="name"> <input type="submit" value="Create">
+    </form>
     </center>
     </div>
 
     <script>
       function getUsername() {
         var username = prompt('Enter a username');
-        if(username != null) {
-          window.location.href = "/serverrooms";
-        }
+
       }
     </script>
   </body>
