@@ -3,12 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= room.name %>></title>
+    <title>Map Test</title>
 </head>
 <body>
     <div id="map"></div>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+
+   <div id="d2"></div>
+    <div id="d1">
+        <div class="top">
+            <a href="javascript:void(0)" οnclick="cancel()">&#935;</a>
+        </div>
+        <input type="text" class="number" placeholder="Please enter the number of troops" id="number">
+        <div class="submit">
+            <button class="cancel" οnclick="cancel()">Cancel</button>
+            <button class="confirm" οnclick="confirm()">Confirm</button>
+        </div>
+    </div>
+    <script>
+           function cancel() {
+                let d2=document.getElementById("d2");
+                d2.style.display="none";
+                let d1=document.getElementById("d1");
+                d1.style.display="none";
+                console.log("you click cancel");
+            }
+            function confirm() {
+                let d2=document.getElementById("d2");
+                d2.style.display="none";
+                let d1=document.getElementById("d1");
+                d1.style.display="none";
+                console.log("you click confirm");
+            }
+    </script>
+
+    <style>
+       #d1{
+            width: 400px;
+            height: 200px;
+            z-index: 2;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin-left: -200px;
+            margin-top: -150px;
+            overflow: hidden;
+            display: none;
+            background-color: white;
+        }
+        #d2{
+            position: fixed;
+            left: 0;
+            top:0;
+            width: 100%;
+            height: 100%;
+            background-color: grey;
+            z-index: 1;
+            opacity: 0.8;
+            display: none;
+        }
+        #number{
+            display: block;
+            width: 90%;
+            height: 30px;
+            margin: 40px auto;
+            border: solid 1px #248CD6;
+            border-radius: 5px;
+            outline: none;
+            padding-left: 5px;
+        }
+        #number:focus{
+            border: solid 1px #248CD6;
+            border-radius: 5px;
+            box-shadow: 0 0 8px #248CD6;
+        }
+        .submit{
+            display: flex;
+            width: 90%;
+            height: 40px;
+            margin: 20px auto;
+        }
+        .cancel,.confirm{
+            flex: 1;
+            margin: 2px;
+            border: none;
+            transition: all 0.2s;
+        }
+        .cancel:hover,.confirm:hover{
+            background-color: #248CD6;
+            color: white;
+        }
+        .top{
+            width: 90%;
+            height: 20px;
+            margin: 2px auto;
+        }
+        .top a{
+            float: right;
+            margin-right: 0;
+            text-decoration: none;
+            color: #3A3C3D;
+            opacity: 0.5;
+        }
+        .top a:hover{
+            opacity: 1;
+        }
+    </style>
+
+
     <script>
         var graph;
         var regions = {};
@@ -20,7 +123,7 @@
         window.addEventListener('load', function() {
             let container = document.getElementById('map');
             map = new Raphael(container, 620, 600);
-
+            
             var style = {
                 fill: "#ddd",
                 stroke: "#aaa",
@@ -38,9 +141,10 @@
                 fill: "#E8E889"
             };
             
-            socket = io('/game');
+            socket = io('/test-map');
             socket.on('map', function(g) {
 
+                // TODO refactor
                 graph = g;
 
                 // console.log(graph.adjacencyMatrix);
@@ -56,20 +160,26 @@
                     troopMarkers[graph.nodes[i].obj.name] = map.text(centerX, centerY, graph.nodes[i].obj.troops);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
-
+                        
                         // ? what if two regions have the same name
                         if(graph.nodes[i].obj.name !== selectedRegion) {
                             regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
                         }
                     }, true);
                     regions[graph.nodes[i].obj.name][0].addEventListener('click', function() {
-
+                        
                         // clear all styles
                         for(let j = 0; j < graph.nodes.length; j++) {
                             regions[graph.nodes[j].obj.name].animate(style, 0);
                         }
 
                         // TODO show a popup to select the number of troops to move
+                        let d2=document.getElementById("d2");
+                        d2.style.display="block";
+                        let d1=document.getElementById("d1");
+                        d1.style.display="block";
+
+
                         if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
                             // a region was selected and the user then clicked on a neighboring region
 
@@ -87,7 +197,7 @@
                                         regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
                                     }
                                 }
-
+        
                                 regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
                                 selectedRegion = graph.nodes[i].obj.name;
                             } else {
@@ -98,7 +208,7 @@
                     }, true);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
-
+                        
                         if(graph.nodes[i].obj.name === selectedRegion) {
                             regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
                         } else if(neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
@@ -115,12 +225,12 @@
                 for(let i = 0; i < graph.nodes.length; i++) {
                     if(graph.nodes[i].obj.name === data.from) {
                         console.log('Updating marker');
-                        graph.nodes[i].obj.troops -= data.attackingDeaths;
+                        graph.nodes[i].obj.troops -= data.num;
                         troopMarkers[data.from].attr({text: graph.nodes[i].obj.troops})
                     }
                     if(graph.nodes[i].obj.name === data.to) {
                         console.log('Updating marker');
-                        graph.nodes[i].obj.troops -= data.defendingDeaths;
+                        graph.nodes[i].obj.troops += data.num;
                         troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops})
                     }
                 }
