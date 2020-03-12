@@ -165,15 +165,13 @@ gameServer.on('connection', function(socket) {
 
     // send the map to all players
     let playerList = [];
-    console.log(room.obj.users);
     for(let i = 0; i < room.obj.users.length; i++) {
         playerList.push(users.search(room.obj.users[i]).obj.username);
     }
-    
-    console.log(playerList);
 
     // ! loads the predefined france map
     room.obj.gameState = new GameState(getMap(), playerList);
+    room.obj.gameState.calculateReinforcements();
 
     gameRoom.emit('player list', {playerList: playerList});
     gameRoom.emit('map', room.obj.gameState.map);
@@ -270,6 +268,10 @@ gameServer.on('connection', function(socket) {
             return;
         }
 
+        console.log(room.obj.gameState.currentPlayer);
+        console.log(user.obj.username);
+        console.log(room.obj.gameState.phase);
+
         if(room.obj.gameState.currentPlayer !== user.obj.username || room.obj.gameState.phase !== 'reinforcement') {
             console.log('not reinforcement phase');
             socket.disconnect(true);
@@ -286,6 +288,7 @@ gameServer.on('connection', function(socket) {
         for(let i = 0; i < room.obj.gameState.map.nodes.length; i++) {
             if(room.obj.gameState.map.nodes[i].obj.name === data.region) {
                 room.obj.gameState.map.nodes[i].obj.troops += data.num;
+                room.obj.gameState.reinforcementsRemaining -= data.num;
                 found = true;
                 break;
             }

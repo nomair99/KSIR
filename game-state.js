@@ -13,7 +13,7 @@ var GameState = function(map, playerList) {
     this.reinforcementsRemaining = 0;
 
     this.currentPlayerIndex = 0;
-    this.currentPlayer = playerList[this.currentPlayerIndex].player;
+    this.currentPlayer = this.playerList[this.currentPlayerIndex].player;
     this.phase = 'reinforcement';
 
     // TODO generate continents list
@@ -88,12 +88,12 @@ var GameState = function(map, playerList) {
         this.map.nodes[index].obj.troops -= num;
     };
 
-    this.calculatedReinforcements = function(player) {
-        // calculate the bonus troops from conquered continents for [player]
+    this.calculateReinforcements = function() {
+        // calculate the bonus troops from conquered continents for the current player
 
         let numOwnedRegions = 0;
         for(let i = 0; i < this.map.nodes.length; i++) {
-            if(this.map.nodes[i].obj.owner === player) {
+            if(this.map.nodes[i].obj.owner === this.currentPlayer) {
                 numOwnedRegions++;
             }
         }
@@ -109,7 +109,7 @@ var GameState = function(map, playerList) {
                 break;
             }
 
-            if(this.map.nodes[next.value].obj.owner !== player) {
+            if(this.map.nodes[next.value].obj.owner !== this.currentPlayer) {
                 continentsNotConquered.set(this.map.nodes[next.value].obj.continent, true);
             }
         }
@@ -121,7 +121,8 @@ var GameState = function(map, playerList) {
             }
         }
 
-        return Math.max(3, Math.floor(numOwnedRegions / 3)) + bonus;
+        this.reinforcementsRemaining = Math.max(3, Math.floor(numOwnedRegions / 3)) + bonus;
+        return this.reinforcementsRemaining;
     };
 };
 
