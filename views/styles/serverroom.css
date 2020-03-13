@@ -73,6 +73,13 @@
     position: relative;
   }
 
+  #newRoom {
+    margin-left: 20px;
+    position: relative;
+    top: -70px;
+  }
+
+
   #rooms {
       list-style-type: none;
       padding-left: 20px;

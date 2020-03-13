@@ -352,10 +352,6 @@ app.get('/privacy', function(req, res) {
     res.render('privacy', {});
 })
 
-app.get('/serverrooms', function(req, res) {
-    res.render('serverrooms', {});
-})
-
 app.get('/rooms', function(req, res) {
     if(!users.search(req.sessionID)) {
         return res.redirect('/');

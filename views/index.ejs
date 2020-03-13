@@ -35,13 +35,19 @@
     </center>
     </div>
 
-    <script>
-      function getUsername() {
-        var username = prompt('Enter a username');
-        if(username != null) {
-          window.location.href = "/serverrooms";
+    <!-- <script>
+      async function postUser() {
+          const response = await fetch('http://localhost:3000//login', {
+            method: 'POST',
+            body: username,
+          });
+          return await response.json();
         }
+
+      function getUsername() {
+        var username = prompt('Enter Username');
+        postUser();
       }
-    </script>
+    </script> -->
   </body>
 </html>
