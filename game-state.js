@@ -16,7 +16,6 @@ var GameState = function(map, playerList) {
     this.currentPlayer = this.playerList[this.currentPlayerIndex].player;
     this.phase = 'reinforcement';
 
-    // TODO generate continents list
     this.continentsList = [];
     for(let i = 0; i < this.map.nodes.length; i++) {
         if(this.continentsList.indexOf(this.map.nodes[i].obj.continent) === -1) {
@@ -123,6 +122,23 @@ var GameState = function(map, playerList) {
 
         this.reinforcementsRemaining = Math.max(3, Math.floor(numOwnedRegions / 3)) + bonus;
         return this.reinforcementsRemaining;
+    };
+
+    this.isDefeated = function(player) {
+        let traversal = this.map.getFullTraversal();
+        let next;
+        while(true) {
+            next = traversal.next();
+            if(next.done) {
+                break;
+            }
+            
+            if(this.map.nodes[next.value].obj.owner === player) {
+                return false;
+            }
+        }
+
+        return true;
     };
 };
 

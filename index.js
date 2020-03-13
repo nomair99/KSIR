@@ -253,14 +253,34 @@ gameServer.on('connection', function(socket) {
 
         console.log(`attacking region lost ${attackingDeaths}`);
         console.log(`defending region lost ${defendingDeaths}`);
+        
+        let conquered = false;
+        let defeated = false;
+
+        if(defendingDeaths === room.obj.gameState.map.nodes[indexTo].obj.troops) {
+            // all defending troops died
+            // the region was conquered
+
+            conquered = true;
+            let defendingPlayer = room.obj.gameState.map.nodes[indexTo].obj.owner;
+
+            room.obj.gameState.map.nodes[indexTo].obj.owner = user.obj.username;
+            room.obj.gameState.killTroops(indexTo, defendingDeaths - (attackingTroops - attackingDeaths));
+
+            defeated = room.obj.gameState.isDefeated(defendingPlayer);
+        } else {
+            room.obj.gameState.killTroops(indexTo, defendingDeaths);
+        }
+        
         room.obj.gameState.killTroops(indexFrom, attackingDeaths);
-        room.obj.gameState.killTroops(indexTo, defendingDeaths);
 
         gameRoom.emit('attack', {
             from: data.from,
             to: data.to,
             attackingDeaths: attackingDeaths,
-            defendingDeaths: defendingDeaths
+            defendingDeaths: defendingDeaths,
+            conquered: conquered,
+            defeated: defeated
         });
     });
 
@@ -413,7 +433,6 @@ app.get('/room/:id', function(req, res) {
         // parsing failed, or room doesn't exist
         return res.sendStatus(404);
     }
-
 
     // add the user to list if they aren't already in lobby
     // make sure the number of users is limited
