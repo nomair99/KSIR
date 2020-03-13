@@ -1,45 +1,124 @@
 *{
-    margin: 0;
-    padding: 0;
-    font-family: "montserrat",sans-serif;
-  }
+  margin: 0;
+  padding: 0;
+  font-family: "montserrat",sans-serif;
+}
 
-#newRoom {
-    height: 20;
+.header{
+  height: 120px;
+  background: #ffffff;
+  padding: 0 10px;
+  color: #ff0000;
+  position: fixed;
+  z-index: 10;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+.header img{
+    float: left;
+    padding: 0 15px 15px 0;
+}
+
+.menu{
+  float: right;
+  line-height: 100px;
+  padding: 5px 20px;
+}
+
+.menu a{
+  color: #000000;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0 20px;
+  font-family: Yu Gothic UI Semibold;
+  font-size: 20px;
+}
+
+.show-menu-btn,.hide-menu-btn{
+  transition: 0.4s;
+  font-size: 30px;
+  cursor: pointer;
+  display: none;
+}
+
+.show-menu-btn{
+  float: right;
+  padding: 0 25px;
+}
+
+.show-menu-btn i{
+  line-height: 100px;
+}
+
+.menu a:hover{
+  color: #fff;
+  background-color: #ff0000;
+  border-top: 50px solid #ff0000;
+  border-bottom: 52px solid #ff0000;
+}
+
+.show-menu-btn:hover,
+.hide-menu-btn:hover{
+  color: #3498db;
 }
 
 .content {
   background: #f1f1f1;
-  /* padding: 150px 150px; */
   padding-top: 200px;
-  height: 200px;
+  height: 300px;
+  width: 1000px;
+  margin: auto;
   position: relative;
 }
 
-.content ul li {
-  height: 100;
-  background-color: antiquewhite;
-  margin-left: 50;
-  margin-right: 50;
+#newRoom {
+  margin-left: 20px;
+  position: relative;
+  top: -70px;
 }
 
+
 #rooms {
-  list-style-type: none;
-  padding-left: 20px;
-  padding-right: 20px;
+    list-style-type: none;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 #rooms li div {
-  line-height: 50px;
-  padding-left: 50px;
-  height: 50px;
-  /* border-style: solid; */
-  border-radius: 0.5em;
-  margin-bottom: 10px;
-  background-color: #fffbed;
-  box-shadow: 5px 5px 3px #e3e3e3;
+    line-height: 50px;
+    padding-left: 50px;
+    height: 50px;
+    /* border-style: solid; */
+    border-radius: 0.5em;
+    margin-bottom: 10px;
+    background-color: #fffbed;
+    box-shadow: 5px 5px 3px #e3e3e3;
 }
 
-#room_name {
+#btn-div {
+    text-align: center;
+    height: 50px;
+}
+
+#play-btn {
+  margin-left: 10px;
+  height: 50px;
+  background-color: #575757;
+  padding: 20px;
+}
+
+#play-btn:link {
+  color: #000000;
   text-decoration: none;
+}
+
+#play-btn:visited {
+  color: #000000;
+  text-decoration: none;
+}
+
+#play-btn:hover {
+  color: #C8C8C8;
 }
