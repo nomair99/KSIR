@@ -2,12 +2,132 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="./styles/room.css" type="text/css">
+    <link rel="stylesheet" href="./styles/rooms.css" type="text/css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Room - <%= room.name %></title>
+
+    <style>
+        *{
+  margin: 0;
+  padding: 0;
+  font-family: "montserrat",sans-serif;
+}
+
+.header{
+  height: 120px;
+  background: #ffffff;
+  padding: 0 10px;
+  color: #ff0000;
+  position: fixed;
+  z-index: 10;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+.header img{
+    float: left;
+    padding: 0 15px 15px 0;
+}
+
+.menu{
+  float: left;
+  line-height: 100px;
+  padding: 5px 20px;
+}
+
+.menu a{
+  color: #000000;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 0 20px;
+  font-family: Yu Gothic UI Semibold;
+  font-size: 20px;
+}
+
+.show-menu-btn,.hide-menu-btn{
+  transition: 0.4s;
+  font-size: 30px;
+  cursor: pointer;
+  display: none;
+}
+
+.show-menu-btn{
+  float: right;
+  padding: 0 25px;
+}
+
+.show-menu-btn i{
+  line-height: 100px;
+}
+
+.menu a:hover{
+  color: #fff;
+  background-color: #ff0000;
+  border-top: 50px solid #ff0000;
+  border-bottom: 52px solid #ff0000;
+}
+
+.show-menu-btn:hover,
+.hide-menu-btn:hover{
+  color: #3498db;
+}
+
+.content {
+  background: #f1f1f1;
+  padding-top: 200px;
+  height: 300px;
+  width: 1000px;
+  margin: auto;
+  position: relative;
+}
+
+#newRoom {
+  margin-left: 20px;
+  position: relative;
+  top: -70px;
+}
+
+
+#rooms {
+    list-style-type: none;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#rooms li div {
+    line-height: 50px;
+    padding-left: 50px;
+    height: 50px;
+    /* border-style: solid; */
+    border-radius: 0.5em;
+    margin-bottom: 10px;
+    background-color: #fffbed;
+    box-shadow: 5px 5px 3px #e3e3e3;
+}
+    </style>
 </head>
 <body>
+
+    <div class="header">
+        <img src="./styles/ksir.png" alt="ksir" width=220px height=100%>
+        <input type="checkbox" id="chk">
+        <label for="chk" class="show-menu-btn">
+          <i class="fas fa-ellipsis-h"></i>
+        </label>
+    
+        <ul class="menu">
+          <a href="index">Home</a>
+          <!-- <a href="#">About</a>
+          <a href="localhost:3000/privacy.ejs">Privacy</a>
+          <a href="#">Contact</a> -->
+          <label for="chk" class="hide-menu-btn">
+            <i class="fas fa-times"></i>
+          </label>
+        </ul>
+      </div>
+
     <a href="/rooms">Back</a><br>
     <h1><%= room.name %></h1>
     <ul>
