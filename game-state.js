@@ -76,11 +76,10 @@ var GameState = function(map, playerList) {
         } while(!this.playerList[this.currentPlayerIndex].alive);
     };
 
-    this.moveTroops = function(from, to, num) {
+    this.moveTroops = function(indexFrom, indexTo, num) {
         
-        // ? should there be checks here
-        this.map.nodes[from].obj.troops -= num;
-        this.map.nodes[to].obj.troops += num;
+        this.map.nodes[indexFrom].obj.troops -= num;
+        this.map.nodes[indexTo].obj.troops += num;
     };
     
     this.killTroops = function(index, num) {

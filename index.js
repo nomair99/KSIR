@@ -332,12 +332,63 @@ gameServer.on('connection', function(socket) {
             return;
         }
         
-        gameRoom.emit('reinforce', {
-            region: data.region,
-            num: data.num
-        });
+        // gameRoom.emit('reinforce', {
+        //     region: data.region,
+        //     num: data.num
+        // });
+        gameRoom.emit('reinforce', data);
     });
     
+    socket.on('move', function(data) {
+        console.log('got move event');
+        
+        if(room.obj.GameState.phase !== 'move') {
+            console.log('wrong phase');
+            socket.disconnect(true);
+            return;
+        }
+        
+        if(!data.from || !data.to || !data.num) {
+            console.log('missing data');
+            socket.disconnect(true);
+            return;
+        }
+
+        if(data.from === data.to) {
+            console.log('regions same');
+            socket.disconnect(true);
+            return;
+        }
+        let indexFrom = null, indexTo = null;
+
+        for(let i = 0; i < room.obj.gameState.map.nodes.length; i++) {
+            if(room.obj.gameState.map.nodes[i].obj.name === data.from && room.obj.gameState.map.nodes[i].obj.owner === user.obj.username) {
+                indexFrom = i;
+            }
+            if(room.obj.gameState.map.nodes[i].obj.name === data.to && room.obj.gameState.map.nodes[i].obj.owner === user.obj.username) {
+                indexTo = i;
+            }
+        }
+        // TODO check if route exists
+
+        // disconnect if region did not exist
+        if(indexFrom === null || indexTo === null) {
+            console.log('region does not exist');
+            socket.disconnect(true);
+            return;
+        }
+        
+        if(!Number.isInteger(data.num) || data.num <= 0 || data.num >= room.obj.gameState.nodes[indexFrom].obj.troops) {
+            console.log('illegal number');
+            socket.disconnect(true);
+            return;
+        }
+
+        room.obj.gameState.moveTroops(indexFrom, indexTo, num);
+
+        gameRoom.emit('move', data);
+    });
+
     socket.on('end phase', function(data) {
         if(room.obj.gameState.phase === 'reinforcement') {
             if(room.obj.gameState.reinforcementsRemaining > 0) {
