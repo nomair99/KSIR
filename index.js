@@ -369,7 +369,12 @@ gameServer.on('connection', function(socket) {
                 indexTo = i;
             }
         }
-        // TODO check if route exists
+
+        if(!room.obj.gameState.routeExists(indexFrom, indexTo)) {
+            console.log('path does not exist');
+            socket.disconnect(true);
+            return;
+        }
 
         // disconnect if region did not exist
         if(indexFrom === null || indexTo === null) {

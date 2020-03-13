@@ -47,6 +47,29 @@ var Graph = function(nodes, edges) {
             yield nodeIndex;
         };
     };
+    
+    this.getConnectedTraversal = function(startIndex) {
+        // specific to territory objects
+        
+        let player = this.nodes[startIndex].obj.owner;
+        let nodeIndex;
+        let visitedNodes = new Map();
+        let visitQueue = new Queue();
+        visitQueue.enqueue(startIndex);
+    
+        while(!visitQueue.isEmpty()) {
+            nodeIndex = visitQueue.dequeue();
+            visitedNodes.set(nodeIndex, true);
+            for(let i = 0; i < this.nodes.length; i++) {
+                if(this.nodes[i].obj.owner === player && this.adjacencyMatrix[nodeIndex][i] && !visitedNodes.has(i)) {
+                    visitQueue.enqueue(i);
+                    visitedNodes.set(i, true);
+                }
+            }
+    
+            yield nodeIndex;
+        };
+    };
 };
 
 exports.GraphNode = GraphNode;

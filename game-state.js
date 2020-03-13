@@ -139,6 +139,23 @@ var GameState = function(map, playerList) {
 
         return true;
     };
+    
+    this.routeExists = function(indexFrom, indexTo) {
+        let traversal = this.map.getConnectedTraversal(indexFrom);
+        let next;
+        while(true) {
+            next = traversal.next();
+            if(next.done) {
+                break;
+            }
+            
+            if(next.value === indexTo) {
+                return true;
+            }
+        }
+    
+        return false;
+    };
 };
 
 exports.GameState = GameState;
