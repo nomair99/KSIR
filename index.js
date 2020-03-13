@@ -181,6 +181,12 @@ gameServer.on('connection', function(socket) {
 
         console.log('got attack event');
 
+        if(room.obj.gameState.phase !== 'attack') {
+            console.log('wrong phase');
+            socket.disconnect(true);
+            return;
+        }
+
         if(!data.from || !data.to || !data.num === null) {
             console.log('missing data');
             socket.disconnect(true);
@@ -262,6 +268,12 @@ gameServer.on('connection', function(socket) {
 
         console.log('got reinforce event');
 
+        if(room.obj.gameState.phase !== 'reinforcement') {
+            console.log('wrong phase');
+            socket.disconnect(true);
+            return;
+        }
+
         if(!data.region || data.num === null) {
             console.log('missing data');
             socket.disconnect(true);
@@ -299,15 +311,27 @@ gameServer.on('connection', function(socket) {
             socket.disconnect(true);
             return;
         }
-
+        
         gameRoom.emit('reinforce', {
             region: data.region,
             num: data.num
         });
     });
-
-    socket.on('end turn', function(data) {
-        // TODO
+    
+    socket.on('end phase', function(data) {
+        if(room.obj.gameState.phase === 'reinforcement') {
+            if(room.obj.gameState.reinforcementsRemaining > 0) {
+                console.log('not all reinforcements used');
+                socket.disconnect(true);
+                return;
+            }
+            room.obj.gameState.phase = 'attack';
+        } else if(room.obj.gameState.phase === 'attack') {
+            room.obj.gameState.phase = 'move';
+        } else {
+            room.obj.gameState.phase = 'reinforcement';
+            room.obj.gameState.switchToNextPlayer();
+        }
     });
 });
 
