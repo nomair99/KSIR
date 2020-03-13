@@ -1,0 +1,45 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: "montserrat",sans-serif;
+  }
+
+#newRoom {
+    height: 20;
+}
+
+.content {
+  background: #f1f1f1;
+  /* padding: 150px 150px; */
+  padding-top: 200px;
+  height: 200px;
+  position: relative;
+}
+
+.content ul li {
+  height: 100;
+  background-color: antiquewhite;
+  margin-left: 50;
+  margin-right: 50;
+}
+
+#rooms {
+  list-style-type: none;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+#rooms li div {
+  line-height: 50px;
+  padding-left: 50px;
+  height: 50px;
+  /* border-style: solid; */
+  border-radius: 0.5em;
+  margin-bottom: 10px;
+  background-color: #fffbed;
+  box-shadow: 5px 5px 3px #e3e3e3;
+}
+
+#room_name {
+  text-decoration: none;
+}

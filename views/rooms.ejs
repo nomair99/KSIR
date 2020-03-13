@@ -2,24 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="./styles/rooms.css" type="text/css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Chat Rooms</title>
 </head>
 <body>
     <p id="connect"></p>
-    <form action="createroom" method="post"> Enter room name. Make sure that the room name is 2-15 characters long and contains only letters and numbers.
-        <input type="text" name="create_room_name" id="create_room_name"> <input type="submit" value="Create">
-    </form>
+    <div id='newRoom'>
+        <form action="createroom" method="post"> Create new room. Make sure that the room name is 2-15 characters long and contains only letters and numbers.
+            <input type="text" name="create_room_name" id="create_room_name"> <input type="submit" value="Create">
+        </form>
+    </div>
+    <div class='content'>
     <%- error_room %>
-    <ul>
+    <ul id='rooms'>
         <% let walk = rooms.head; %>
         <% while(walk) { %>
             <% let room = walk.obj; %>
-            <li><a href="room/<%=room.id%>"><%= room.name %></a></li>
+            <li><div><a id="room_name" href="room/<%=room.id%>"><%= room.name %></a></div></li>
             <% walk = walk.next; %>
         <% } %>
     </ul>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script>
         var socket = io('/game-browser');
