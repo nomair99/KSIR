@@ -163,17 +163,29 @@ gameServer.on('connection', function(socket) {
     socket.join(`game-${roomID}`);
     let gameRoom = gameServer.in(`game-${roomID}`);
 
-    // ! loads the predefined france map
-    room.obj.gameState = new GameState(getMap(), room.obj.users);
-
     // send the map to all players
+    let playerList = [];
+    for(let i = 0; i < room.obj.users.length; i++) {
+        playerList.push(users.search(room.obj.users[i]).obj.username);
+    }
+
+    // ! loads the predefined france map
+    room.obj.gameState = new GameState(getMap(), playerList);
+    room.obj.gameState.calculateReinforcements();
+
+    gameRoom.emit('player list', {playerList: playerList});
     gameRoom.emit('map', room.obj.gameState.map);
 
     socket.on('attack', function(data) {
-        // TODO do ownership checks
         // move troops from one territory to the other
 
         console.log('got attack event');
+
+        if(!data.from || !data.to || !data.num === null) {
+            console.log('missing data');
+            socket.disconnect(true);
+            return;
+        }
 
         // ? what if two regions have the same name
         // disconnect if the regions are the same
@@ -185,10 +197,10 @@ gameServer.on('connection', function(socket) {
         let indexFrom = null, indexTo = null;
 
         for(let i = 0; i < room.obj.gameState.map.nodes.length; i++) {
-            if(room.obj.gameState.map.nodes[i].obj.name === data.from) {
+            if(room.obj.gameState.map.nodes[i].obj.name === data.from && room.obj.gameState.map.nodes[i].obj.owner === user.obj.username) {
                 indexFrom = i;
             }
-            if(room.obj.gameState.map.nodes[i].obj.name === data.to) {
+            if(room.obj.gameState.map.nodes[i].obj.name === data.to && room.obj.gameState.map.nodes[i].obj.owner !== user.obj.username) {
                 indexTo = i;
             }
         }
@@ -200,7 +212,7 @@ gameServer.on('connection', function(socket) {
             return;
         }
 
-        if(data.num < 1 || data.num > 3 || room.obj.gameState.map.nodes[indexFrom].obj.troops <= data.num) {
+        if(!Number.isInteger(data.num) || data.num < 1 || data.num > 3 || room.obj.gameState.map.nodes[indexFrom].obj.troops <= data.num) {
             console.log('bad troop count');
             socket.disconnect(true);
             return;
@@ -243,6 +255,54 @@ gameServer.on('connection', function(socket) {
             to: data.to,
             attackingDeaths: attackingDeaths,
             defendingDeaths: defendingDeaths
+        });
+    });
+
+    socket.on('reinforce', function(data) {
+
+        console.log('got reinforce event');
+
+        if(!data.region || data.num === null) {
+            console.log('missing data');
+            socket.disconnect(true);
+            return;
+        }
+
+        console.log(room.obj.gameState.currentPlayer);
+        console.log(user.obj.username);
+        console.log(room.obj.gameState.phase);
+
+        if(room.obj.gameState.currentPlayer !== user.obj.username || room.obj.gameState.phase !== 'reinforcement') {
+            console.log('not reinforcement phase');
+            socket.disconnect(true);
+            return;
+        }
+        
+        if(!Number.isInteger(data.num) || data.num <= 0 || data.num > room.obj.gameState.reinforcementsRemaining) {
+            console.log('illegal number');
+            socket.disconnect(true);
+            return;
+        }
+        
+        let found = false;
+        for(let i = 0; i < room.obj.gameState.map.nodes.length; i++) {
+            if(room.obj.gameState.map.nodes[i].obj.name === data.region) {
+                room.obj.gameState.map.nodes[i].obj.troops += data.num;
+                room.obj.gameState.reinforcementsRemaining -= data.num;
+                found = true;
+                break;
+            }
+        }
+        
+        if(!found) {
+            console.log('region not found');
+            socket.disconnect(true);
+            return;
+        }
+
+        gameRoom.emit('reinforce', {
+            region: data.region,
+            num: data.num
         });
     });
 
