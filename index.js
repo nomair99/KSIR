@@ -584,17 +584,14 @@ app.get('/testmap', function(req, res) {
 });
 
 app.post('/login', function(req, res) {
-<<<<<<< HEAD
+
+    console.log(req.body.username)
 
     if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length<2 || req.body.username.length>15){
+        console.log('invalid');
         req.session.error_user = 'Invalid username';
         res.redirect('/');
-        return;
-=======
-    console.log(req.body);
-    if(!req.body.username) {
-        return res.sendStatus(401);
->>>>>>> homepage
+        return false;
     }
 
     // ? is this still needed?
@@ -609,6 +606,7 @@ app.post('/login', function(req, res) {
     }
 
     res.redirect('rooms');
+    return true;
 });
 
 http.listen(process.env.PORT || 3000, function() {
