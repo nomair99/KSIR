@@ -38,7 +38,7 @@
     <script>
       function getUsername() {
         var user = prompt('Enter a username');
-        var data = { username: 'true' };
+        var data = { username: user };
         fetch('http://localhost:3000/login', {
           method: 'post',
           headers: {
