@@ -42,11 +42,12 @@
         socket.on('host left', function(data) {
             // TODO show "host has left box"
             // user must no longer be able to interact with the page
+            window.location = "http"
         });
 
         socket.on('start game', function(data) {
             // ! change base url or it won't work on server
-            window.location = "http://localhost:3000/room/<%= room.id %>/game";
+            window.location = "<%= baseUrl %>/room/<%= room.id %>/game";
         });
 
         socket.on('message', function(msg) {

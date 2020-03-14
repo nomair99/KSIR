@@ -6,6 +6,8 @@ var http = require('http').createServer(app);
 var dotenv = require('dotenv');
 dotenv.config();
 
+var baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://komodoandchill.herokuapp.com';
+
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
 var sessionStore = new MemoryStore();
@@ -91,9 +93,6 @@ lobbyServer.on('connection', function(socket) {
             if(user.obj.sessionID === room.obj.host) {
                 // the host left, destroy the room
 
-                // TODO close all connections after this
-                // TODO show message to users on /room, provide link to go back to /rooms
-                // TODO send to all OTHER sockets
                 console.log(`host left room ${roomID}`);
                 lobbyServer.in(`game-${roomID}`).emit('host left', null);
 
@@ -116,6 +115,8 @@ lobbyServer.on('connection', function(socket) {
                         break;
                     }
                 }
+
+                lobbyServer.in(`game-${roomID}`).emit('player left', user.sessionID);
             }
 
         }
@@ -175,6 +176,9 @@ gameServer.on('connection', function(socket) {
 
     gameRoom.emit('player list', {playerList: playerList});
     gameRoom.emit('map', room.obj.gameState.map);
+
+    // TODO what to do if someone leaves?
+    // TODO what if everyone leaves
 
     socket.on('attack', function(data) {
         // move troops from one territory to the other
@@ -433,7 +437,7 @@ app.get('/rooms', function(req, res) {
         return res.redirect('/');
     }
 
-    res.render('rooms', {rooms: rooms, error_room: req.session.error_room});
+    res.render('rooms', {rooms: rooms, baseUrl: baseUrl, error_room: req.session.error_room});
 });
 
 app.post('/createroom', function(req, res) {
@@ -502,7 +506,7 @@ app.get('/room/:id', function(req, res) {
         }
     }
 
-    res.render('room', {currentUser: user.obj, room: room.obj, users: users});
+    res.render('room', {currentUser: user.obj, baseUrl: baseUrl, room: room.obj, users: users});
 });
 
 app.get('/room/:id/game', function(req, res) {
@@ -526,7 +530,7 @@ app.get('/room/:id/game', function(req, res) {
 
     if(id == NaN || id < 0 || !(room = rooms.search(id))) {
 
-        console.log(process.env.NODE_ENV);    
+        console.log(process.env.NODE_ENV);
         if(process.env.NODE_ENV !== 'development') {
             return res.sendStatus(404);
         }
@@ -548,7 +552,7 @@ app.get('/room/:id/game', function(req, res) {
         return res.redirect(`/room/${id}`);
     }
 
-    res.render('game', {room: room.obj});
+    res.render('game', {room: room.obj, baseUrl: baseUrl});
 });
 
 app.get('/testmap', function(req, res) {
