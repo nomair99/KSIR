@@ -31,31 +31,19 @@
 
 <div class="content">
     <center>
-      <a href='#' id="play" onclick="getUsername()">Play</a>
+      <a id="play" onclick="getUsername()">Play</a>
     </center>
     </div>
 
     <script>
       function getUsername() {
-        var username = prompt('Enter a username');
-        if(username != null) {
-          window.location.href = "/serverrooms";
-        }
+        fetch('http://localhost:3000/', {
+          method: 'post',
+          body: 'test',
+        }).then(function(res) {
+          console.log(res);
+        });
       }
     </script>
-
-<!-- <footer>
-	<div class="footer-container">
-		<img src="ksir.png" alt="" class="logo">
-		<div class="social-media">
-			<a href="https://www.facebook.com"><i class="fab fa-facebook-f"></i></a>
-			<a href="https://twitter.com"><i class="fab fa-twitter"></i></a>
-			<a href="https://www.instagram.com/?hl=zh-cn"><i class="fab fa-instagram"></i></a>
-			<a href="https://www.youtube.com"><i class="fab fa-youtube"></i></a>
-			<a href="https://www.linkedin.com"><i class="fab fa-linkedin-in"></i></a>
-    </div>
-		<p class="rights-text">© 2020 Created By KSIR ALL Rights Reserved.</p>
-	</div>
-</footer> -->
   </body>
 </html>

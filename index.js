@@ -112,6 +112,17 @@ app.get('/rooms', function(req, res) {
     res.render('rooms', {rooms: rooms});
 });
 
+app.post('/', function(req, res) {
+    console.log('requested');
+    if(req.body == 'test') {
+        res.send('true');
+        return true;
+    } else {
+        res.send('false');
+        return false;
+    }
+})
+
 app.post('/createroom', function(req, res) {
     let user = users.search(req.sessionID);
     if(!user) {
