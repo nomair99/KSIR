@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+app.use(express.json());
 var path = require("path");
 var http = require('http').createServer(app);
 
@@ -179,6 +180,7 @@ app.get('/room/:id', function(req, res) {
 });
 
 app.post('/login', function(req, res) {
+    console.log(req.body);
     if(!req.body.username) {
         return res.sendStatus(401);
     }

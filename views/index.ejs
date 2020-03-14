@@ -37,11 +37,14 @@
 
     <script>
       function getUsername() {
-        fetch('http://localhost:3000/', {
+        var user = prompt('Enter a username');
+        var data = { username: 'true' };
+        fetch('http://localhost:3000/login', {
           method: 'post',
-          body: 'test',
-        }).then(function(res) {
-          console.log(res);
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
         });
       }
     </script>
