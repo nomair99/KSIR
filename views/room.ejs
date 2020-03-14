@@ -76,6 +76,18 @@
   width: 1000px;
   margin: auto;
   position: relative;
+  padding-left: 20px;
+}
+
+.content h1 {
+    padding-bottom: 10px;
+    position: absolute;
+    left: 47%;
+    top: 30%;
+}
+
+.content ul {
+    list-style-type: none;
 }
 
 #rooms {
@@ -108,7 +120,6 @@
       </div>
 
 <div class="content">  
-    <a href="/rooms">Back</a><br>
     <h1><%= room.name %></h1>
     <ul>
         <% 
