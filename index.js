@@ -75,12 +75,24 @@ lobbyServer.on('connection', function(socket) {
         socket.disconnect(true);
         return;
     }
+    
+    // ? can a user get added multiple times
+    if(room.obj.users.indexOf(sessionID) === -1) {
+        room.obj.users.push(sessionID);
+    }
+
+    lobbyServer.in(`game-${roomID}`).emit('player joined', user.obj.username);
+    socket.join(`game-${roomID}`);
+
+    let playerList = [];
+    for(let i = 0; i < room.obj.users.length; i++) {
+        playerList.push(users.search(room.obj.users[i]).obj.username);
+    }
+
+    socket.emit('player list', playerList);
 
     // subscribe to the game room
     socket.join(`game-${roomID}`);
-
-    // ? can a user get added multiple times
-    room.obj.users.push(sessionID);
 
     socket.on('disconnect', function() {
         // if a user disconnects, remove them from the game room
