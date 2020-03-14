@@ -48,7 +48,7 @@ var Graph = function(nodes, edges) {
         };
     };
     
-    this.getConnectedTraversal = function(startIndex) {
+    this.getConnectedTraversal = function*(startIndex) {
         // specific to territory objects
         
         let player = this.nodes[startIndex].obj.owner;
