@@ -121,7 +121,8 @@
 
 <div class="content">  
     <h1><%= room.name %></h1>
-    <ul>
+    <ul id="playerlist"></ul>
+    <!-- <ul>
         <% 
             for(let i = 0; i < room.users.length; i++) {
                 let user = users.search(room.users[i]);
@@ -132,7 +133,7 @@
                 }
             } 
         %>
-    </ul>
+    </ul> -->
     <%
         if(currentUser.sessionID === room.host) {
     %>
@@ -149,16 +150,31 @@
     </form>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script>
+        var playerList = [];
         var socket = io('/lobby');
 
+        socket.on('player list', function(data) {
+            playerList = data;
+            updatePlayerList();
+        });
+
+        socket.on('player joined', function(data) {
+            playerList.push(data);
+            updatePlayerList();
+        });
+
         socket.on('host left', function(data) {
-            // TODO show "host has left box"
-            // user must no longer be able to interact with the page
+            window.location = "<%= baseUrl %>/rooms?err=hostleft";
+        });
+
+        socket.on('player left', function(data) {
+            let index = playerList.indexOf(data);
+            playerList.splice(index, 1);
+            updatePlayerList();
         });
 
         socket.on('start game', function(data) {
-            // ! change base url or it won't work on server
-            window.location = "http://localhost:3000/room/<%= room.id %>/game";
+            window.location = "<%= baseUrl %>/room/<%= room.id %>/game";
         });
 
         socket.on('message', function(msg) {
@@ -181,6 +197,20 @@
                 socket.emit('message', msg);
             }
         });
+
+        function updatePlayerList() {
+            let list = document.getElementById('playerlist');
+            
+            while(list.firstChild) {
+                list.removeChild(list.firstChild);
+            }
+
+            for(let i = 0; i < playerList.length; i++) {
+                let player = document.createElement('li');
+                player.innerHTML = playerList[i];
+                list.appendChild(player);
+            }
+        }
     </script>
 </body>
 </html>
