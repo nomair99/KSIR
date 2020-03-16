@@ -4,8 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= room.name %></title>
+    <link rel="stylesheet" href="./styles/game.css" type="text/css">
 </head>
 <body>
+    <div  id="popupposition">
+        <div class = "popupwrapper">
+            <div class = "popupcontent">
+                <h3>Please select the number of troops</h3>
+            </div>
+        </div>
+    </div>
     <div id="map"></div>
     <button id="reinbtn">Reinforce</button>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
@@ -97,9 +105,10 @@
                         }
 
                         // TODO show a popup to select the number of troops to move
+                        //selectroops(10);
                         if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
                             // a region was selected and the user then clicked on a neighboring region
-
+                            selectroops(graph.nodes[i].obj.troops);
                             let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
                             console.log(payload);
                             socket.emit('attack', payload);
@@ -180,6 +189,29 @@
             regions[node.obj.name].attr(style);
             regions[node.obj.name].attr(playerStyles[playerIndex]);
         }
+
+        function selectroops(n, cross) {
+            var popup = document.getElementById("popupposition");
+            toggle_visibility("popupposition");
+            for (var i=0; i<n; i++) {
+               
+                var elem = document.createElement('input');
+                elem.type = 'button';
+                elem.value = i + 1;
+                popup.append(elem);
+            }
+            
+
+        }
+
+        function toggle_visibility(id) {
+			       var n = document.getElementById(id);
+			       if(n.style.display == 'block')
+			          n.style.display = 'none';
+			       else
+			          n.style.display = 'block';
+			    }
     </script>
+   
 </body>
 </html>
