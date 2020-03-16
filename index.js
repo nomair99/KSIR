@@ -6,7 +6,7 @@ var http = require('http').createServer(app);
 var dotenv = require('dotenv');
 dotenv.config();
 
-var baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://komodoandchill.herokuapp.com';
+var baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
 
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
@@ -128,7 +128,7 @@ lobbyServer.on('connection', function(socket) {
                     }
                 }
 
-                lobbyServer.in(`game-${roomID}`).emit('player left', user.sessionID);
+                lobbyServer.in(`game-${roomID}`).emit('player left', user.obj.username);
             }
 
         }
@@ -145,8 +145,8 @@ lobbyServer.on('connection', function(socket) {
         }
     });
 
-    socket.on('message', function(msg) {
-        lobbyServer.in(`game-${roomID}`).emit('message', `${user.obj.username}: ${msg}`);
+    socket.on('chat message', function(msg) {
+        lobbyServer.in(`game-${roomID}`).emit('chat message', `${user.obj.username}: ${msg}`);
     });
 });
 
@@ -573,8 +573,7 @@ app.get('/testmap', function(req, res) {
 
 app.post('/login', function(req, res) {
 
-    if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length<2 || req.body.username.length>15){
-        req.session.error_user = 'Invalid username';
+    if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length < 2 || req.body.username.length > 15){
         res.redirect('/');
         return;
     }

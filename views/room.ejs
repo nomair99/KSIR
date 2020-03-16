@@ -119,28 +119,28 @@
         </ul>
       </div>
 
-<div class="content">  
-    <h1><%= room.name %></h1>
-    <ul id="playerlist"></ul>
-    <!-- <ul>
-        <% 
-            for(let i = 0; i < room.users.length; i++) {
-                let user = users.search(room.users[i]);
-                if(user) {
-        %>
-        <li><%= user.obj.username %></li>
+    <div class="content">  
+        <h1><%= room.name %></h1>
+        <ul id="playerlist"></ul>
+        <!-- <ul>
+            <% 
+                for(let i = 0; i < room.users.length; i++) {
+                    let user = users.search(room.users[i]);
+                    if(user) {
+            %>
+            <li><%= user.obj.username %></li>
+            <%
+                    }
+                } 
+            %>
+        </ul> -->
         <%
-                }
-            } 
+            if(currentUser.sessionID === room.host) {
         %>
-    </ul> -->
-    <%
-        if(currentUser.sessionID === room.host) {
-    %>
-    <button id="start-btn">Start Game</button>
-    <%
-        }
-    %>
+        <button id="start-btn">Start Game</button>
+        <%
+            }
+        %>
     </div>
     <br>
     <div id="chat"></div>
@@ -177,7 +177,7 @@
             window.location = "<%= baseUrl %>/room/<%= room.id %>/game";
         });
 
-        socket.on('message', function(msg) {
+        socket.on('chat message', function(msg) {
             // new chat message received. display it
 
             let chat = document.querySelector('#chat');
@@ -192,9 +192,11 @@
 
         document.querySelector('#chat-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            let msg = document.querySelector('#chat-text').value.trim();
+            let chatTextBox = document.getElementById('chat-text');
+            let msg = chatTextBox.value.trim();
             if(msg !== "") {
-                socket.emit('message', msg);
+                socket.emit('chat message', msg);
+                chatTextBox.value = '';
             }
         });
 
