@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+app.use(express.json());
 var path = require("path");
 var http = require('http').createServer(app);
 
@@ -452,6 +453,17 @@ app.get('/rooms', function(req, res) {
     res.render('rooms', {rooms: rooms, baseUrl: baseUrl, error_room: req.session.error_room});
 });
 
+app.post('/', function(req, res) {
+    console.log('requested');
+    if(req.body == 'test') {
+        res.send('true');
+        return true;
+    } else {
+        res.send('false');
+        return false;
+    }
+})
+
 app.post('/createroom', function(req, res) {
     let user = users.search(req.sessionID);
     if(!user) {
@@ -572,10 +584,16 @@ app.get('/testmap', function(req, res) {
 });
 
 app.post('/login', function(req, res) {
+<<<<<<< HEAD
 
     if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length < 2 || req.body.username.length > 15){
         res.redirect('/');
         return;
+=======
+    console.log(req.body);
+    if(!req.body.username) {
+        return res.sendStatus(401);
+>>>>>>> homepage
     }
 
     // ? is this still needed?
