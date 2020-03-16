@@ -584,17 +584,15 @@ app.get('/testmap', function(req, res) {
 });
 
 app.post('/login', function(req, res) {
-<<<<<<< HEAD
 
-    if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length < 2 || req.body.username.length > 15){
-        res.redirect('/');
-        return;
-=======
     console.log(req.body);
     if(!req.body.username) {
         return res.sendStatus(401);
->>>>>>> homepage
     }
+    
+    if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length < 2 || req.body.username.length > 15){
+        res.redirect('/');
+        return;
 
     // ? is this still needed?
     let isNew = false;
