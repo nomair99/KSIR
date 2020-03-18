@@ -593,7 +593,7 @@ app.post('/login', function(req, res) {
     if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length < 2 || req.body.username.length > 15){
         res.redirect('/');
         return;
-
+    }
     // ? is this still needed?
     let isNew = false;
 
