@@ -147,6 +147,7 @@ lobbyServer.on('connection', function(socket) {
     });
 
     socket.on('chat message', function(msg) {
+        console.log(`got message: ${msg}`);
         lobbyServer.in(`game-${roomID}`).emit('chat message', `${user.obj.username}: ${msg}`);
     });
 });
@@ -183,6 +184,7 @@ gameServer.on('connection', function(socket) {
         playerList.push(users.search(room.obj.users[i]).obj.username);
     }
 
+    console.log('getting map');
     // ! loads the predefined france map
     room.obj.gameState = new GameState(getMap(), playerList);
     room.obj.gameState.calculateReinforcements();
@@ -603,6 +605,7 @@ app.post('/login', function(req, res) {
     }
 
     if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length < 2 || req.body.username.length > 15){
+        console.log('bad username');
         res.redirect('/');
         return;
     }
@@ -618,7 +621,7 @@ app.post('/login', function(req, res) {
         isNew = true;
     }
 
-    res.redirect('rooms');
+    res.redirect('/rooms');
     return true;
 });
 
