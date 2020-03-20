@@ -3,11 +3,12 @@ var app = express();
 app.use(express.json());
 var path = require("path");
 var http = require('http').createServer(app);
+var mode = require("./config.json").mode;
 
 var dotenv = require('dotenv');
 dotenv.config();
 
-var baseUrl = process.env.NODE_ENV === 'development' ? 'http://komodoandchill.herokuapp.com' : 'http://localhost:3000';
+var baseUrl = mode === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
 
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
