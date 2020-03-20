@@ -7,7 +7,7 @@ var http = require('http').createServer(app);
 var dotenv = require('dotenv');
 dotenv.config();
 
-var baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://komodoandchill.herokuapp.com';
+var baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
 
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
@@ -129,7 +129,7 @@ lobbyServer.on('connection', function(socket) {
                     }
                 }
 
-                lobbyServer.in(`game-${roomID}`).emit('player left', user.sessionID);
+                lobbyServer.in(`game-${roomID}`).emit('player left', user.obj.username);
             }
 
         }
@@ -146,8 +146,8 @@ lobbyServer.on('connection', function(socket) {
         }
     });
 
-    socket.on('message', function(msg) {
-        lobbyServer.in(`game-${roomID}`).emit('message', `${user.obj.username}: ${msg}`);
+    socket.on('chat message', function(msg) {
+        lobbyServer.in(`game-${roomID}`).emit('chat message', `${user.obj.username}: ${msg}`);
     });
 });
 
@@ -198,7 +198,7 @@ gameServer.on('connection', function(socket) {
 
         console.log('got attack event');
 
-        if(room.obj.gameState.phase !== 'attack') {
+        if(room.obj.gameState.currentPlayer !== user.obj.username || room.obj.gameState.phase !== 'attack') {
             console.log('wrong phase');
             socket.disconnect(true);
             return;
@@ -285,6 +285,8 @@ gameServer.on('connection', function(socket) {
             room.obj.gameState.killTroops(indexTo, defendingDeaths - (attackingTroops - attackingDeaths));
 
             defeated = room.obj.gameState.isDefeated(defendingPlayer);
+
+            room.obj.gameState.phase = "attack move";
         } else {
             room.obj.gameState.killTroops(indexTo, defendingDeaths);
         }
@@ -359,7 +361,7 @@ gameServer.on('connection', function(socket) {
     socket.on('move', function(data) {
         console.log('got move event');
         
-        if(room.obj.GameState.phase !== 'move') {
+        if(room.obj.gameState.currentPlayer !== user.obj.username || room.obj.GameState.phase !== 'move') {
             console.log('wrong phase');
             socket.disconnect(true);
             return;
@@ -405,13 +407,19 @@ gameServer.on('connection', function(socket) {
             socket.disconnect(true);
             return;
         }
-
+        
         room.obj.gameState.moveTroops(indexFrom, indexTo, num);
-
+        
         gameRoom.emit('move', data);
     });
-
+    
     socket.on('end phase', function(data) {
+        if(room.obj.gameState.currentPlayer !== user.obj.username) {
+            console.log('wrong player');
+            socket.disconnect(true);
+            return;
+        }
+
         if(room.obj.gameState.phase === 'reinforcement') {
             if(room.obj.gameState.reinforcementsRemaining > 0) {
                 console.log('not all reinforcements used');
@@ -421,6 +429,10 @@ gameServer.on('connection', function(socket) {
             room.obj.gameState.phase = 'attack';
         } else if(room.obj.gameState.phase === 'attack') {
             room.obj.gameState.phase = 'move';
+        } else if(room.obj.gameState.phase === 'attack move') {
+            console.log('tried to end phase during attack move');
+            socket.disconnect(true);
+            return;
         } else {
             room.obj.gameState.phase = 'reinforcement';
             room.obj.gameState.switchToNextPlayer();
@@ -585,15 +597,16 @@ app.get('/testmap', function(req, res) {
 
 app.post('/login', function(req, res) {
 
-    console.log(req.body.username)
-
-    if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length<2 || req.body.username.length>15){
-        console.log('invalid');
-        req.session.error_user = 'Invalid username';
-        res.redirect('/');
-        return false;
+    console.log(req.body);
+    if(!req.body.username) {
+        return res.sendStatus(401);
     }
 
+    if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length < 2 || req.body.username.length > 15){
+        res.redirect('/');
+        return;
+    }
+    
     // ? is this still needed?
     let isNew = false;
 
