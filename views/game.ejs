@@ -152,6 +152,14 @@
                         troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops});
                     }
                 }
+
+                if(data.conquered) {
+                    // TODO
+                }
+
+                if(data.defeated) {
+                    // TODO
+                }
             });
 
             socket.on('reinforce', function(data) {
