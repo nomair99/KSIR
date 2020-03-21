@@ -8,7 +8,7 @@ var mode = require("./config.json").mode;
 var dotenv = require('dotenv');
 dotenv.config();
 
-var baseUrl = mode === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
+var baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
 
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
@@ -104,6 +104,11 @@ lobbyServer.on('connection', function(socket) {
         if(room) {
             // sanity check
 
+            if(room.obj.inProgress) {
+                console.log('room was in progress, not changing anything');
+                return;
+            }
+            
             if(user.obj.sessionID === room.obj.host) {
                 // the host left, destroy the room
 
@@ -157,6 +162,8 @@ var gameServer = io.of('/game');
 gameServer.on('connection', function(socket) {
     let sessionID = socket.request.sessionID;
     let user = users.search(sessionID);
+    console.log('socket connected to game room');
+    console.log(`user: ${user.obj}`);
     if(!user) {
         console.log("User wasn't registered. Disconnecting.");
         socket.disconnect(true);
@@ -542,6 +549,11 @@ app.get('/room/:id', function(req, res) {
         } else {
             user.obj.roomID = id;
             room.obj.users.push(user.obj.sessionID);
+            console.log('setting room id');
+            console.log(`id: ${id}`);
+            console.log(`user: ${user.obj}`);
+            console.log(`user roomID: ${user.obj.roomID}`);
+            console.log(`room user list: ${room.obj.users}`);
         }
     }
 
