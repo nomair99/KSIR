@@ -28,37 +28,10 @@
 
 <div class="content">
     <center>
-      <a id="play" onclick="getUsername()">Play</a>
       <form id='play' action="login" method="post">Enter Username
         <input type="text" name="username" id="name"> <input type="submit" value="Create">
     </form>
     </center>
     </div>
-
-    <script>
-      async function getUsername() {
-        var user = prompt('Enter a username');
-        var data = { username: user };
-        response = await fetch('http://localhost:3000/login', {
-          method: 'post',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        });
-        const resData = await response.json()
-        console.log(resData)
-      }
-
-      // async function getUser() {
-      //   var valid = await getUser();
-      //   if(valid) {
-      //     console.log(valid)
-      //   } else {
-      //     console.log(valid)
-      //   }
-      // }
-      
-    </script>
   </body>
 </html>
