@@ -201,6 +201,7 @@ gameServer.on('connection', function(socket) {
     socket.emit('player name', user.obj.username);
     socket.emit('player list', {playerList: room.obj.gameState.playerList});
     socket.emit('map', room.obj.gameState.map);
+    socket.emit('reinforcements remaining', room.obj.gameState.reinforcementsRemaining);
 
     // TODO what to do if someone leaves?
     // TODO what if everyone leaves
@@ -454,7 +455,8 @@ gameServer.on('connection', function(socket) {
             room.obj.gameState.calculateReinforcements();
 
             // emit how many reinforcements the next player has to place
-            gameRoom.emit('end phase', room.obj.gameState.reinforcementsRemaining);
+            gameRoom.emit('end phase', null);
+            socket.emit('reinforcements remaining', room.obj.gameState.reinforcementsRemaining);
         }
     });
 });

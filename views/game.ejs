@@ -7,7 +7,10 @@
 </head>
 <body>
     <div id="map"></div>
-    <button id="reinbtn">Reinforce</button>
+    <div id="game-panel">
+        <div id="reinforcements-remaining"></div>
+        <div id="end-phase">End Phase</div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
     <script>
@@ -17,9 +20,8 @@
         var neighborRegions = [];
         var troopMarkers = {};
         var currentPlayerIndex = 0;
+        var reinforcementsRemaining = 0;
         var playerList, currentPlayer, thisPlayer;
-        // var playerList = room.users;
-        // var currentPlayer = playerList[0];
         var phase = 'reinforcement';
 
         var style = {
@@ -105,11 +107,14 @@
 
                         if(phase === 'reinforcement') {
                             // TODO show popup
+                            // don't show if reinforcementsRemaining <= 0
+                            let num = 2;
+
                             selectedRegion = graph.nodes[i].obj.name;
                             regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
                             socket.emit('reinforce', {
                                 region: graph.nodes[i].obj.name,
-                                num: 2
+                                num: num
                             });
 
                         } else if(phase === 'attack') {
@@ -200,15 +205,14 @@
                         break;
                     }
                 }
+
+                reinforcementsRemaining -= data.num;
+                updateReinforcementsRemaining();
             });
 
-            document.getElementById('reinbtn').addEventListener('click', function(e) {
-                e.preventDefault();
-
-                socket.emit('reinforce', {
-                    region: 'picardie',
-                    num: 2
-                });
+            socket.on('reinforcements remaining', function(num) {
+                reinforcementsRemaining = num;
+                updateReinforcementsRemaining();
             });
         });
 
@@ -226,7 +230,7 @@
                     break;
                 }
             }
-            
+
             regions[node.obj.name].attr(style);
             regions[node.obj.name].attr(playerStyles[playerIndex]);
         }
@@ -235,6 +239,19 @@
             for(let j = 0; j < graph.nodes.length; j++) {
                 restoreStyle(graph.nodes[j]);
             }
+        }
+
+        function updateReinforcementsRemaining() {
+            console.log(`updating reinforcements remaining: ${reinforcementsRemaining}`);
+            let reinforementsNumberBox = document.querySelector('#reinforcements-remaining');
+
+            // remove existing text
+            while(reinforementsNumberBox.firstChild) {
+                reinforementsNumberBox.removeChild(reinforementsNumberBox.firstChild);
+            }
+
+            // display the new number
+            reinforementsNumberBox.appendChild(document.createTextNode(reinforcementsRemaining));
         }
 
         function switchPlayer() {
