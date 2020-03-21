@@ -8,7 +8,7 @@ var mode = require("./config.json").mode;
 var dotenv = require('dotenv');
 dotenv.config();
 
-var baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
+var baseUrl = mode === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
 
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
