@@ -149,6 +149,16 @@ lobbyServer.on('connection', function(socket) {
 
             room.obj.inProgress = true;
             lobbyServer.in(`game-${roomID}`).emit('start game', null);
+
+            console.log('getting map');
+            let playerList = [];
+            for(let i = 0; i < room.obj.users.length; i++) {
+                playerList.push({player: users.search(room.obj.users[i]).obj.username, alive: true});
+            }
+            
+            // ! loads the predefined france map
+            room.obj.gameState = new GameState(getMap(), playerList);
+            room.obj.gameState.calculateReinforcements();
         }
     });
 
@@ -185,24 +195,12 @@ gameServer.on('connection', function(socket) {
     // subscribe to the game room
     socket.join(`game-${roomID}`);
     let gameRoom = gameServer.in(`game-${roomID}`);
-
-    // send the map to all players
-    let playerList = [];
-    for(let i = 0; i < room.obj.users.length; i++) {
-        playerList.push({player: users.search(room.obj.users[i]).obj.username, alive: true});
-    }
-
-    // ? does this happen for each socket 
-    // ? move to start request
-    console.log('getting map');
-    // ! loads the predefined france map
-    room.obj.gameState = new GameState(getMap(), playerList);
-    room.obj.gameState.calculateReinforcements();
-
+    
     // ? should we change all of these to socket.emit
+    // send the map to all players
     socket.emit('player name', user.obj.username);
-    gameRoom.emit('player list', {playerList: playerList});
-    gameRoom.emit('map', room.obj.gameState.map);
+    socket.emit('player list', {playerList: room.obj.gameState.playerList});
+    socket.emit('map', room.obj.gameState.map);
 
     // TODO what to do if someone leaves?
     // TODO what if everyone leaves
