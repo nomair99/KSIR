@@ -16,7 +16,7 @@
         var selectedRegion = null;
         var neighborRegions = [];
         var troopMarkers = {};
-        var playerList, currentPlayer;
+        var playerList, currentPlayer, thisPlayer;
         // var playerList = room.users;
         // var currentPlayer = playerList[0];
         var phase = 'reinforcement';
@@ -58,10 +58,14 @@
             
             socket = io('/game');
 
+            socket.on('player name', function(data) {
+                thisPlayer = data;
+            });
+
             socket.on('player list', function(data) {
                 console.log('got player list');
                 playerList = data.playerList;
-                currentPlayer = playerList[0];
+                currentPlayer = playerList[0].player;
                 console.log(playerList);
             });
 
@@ -89,11 +93,24 @@
                         }
                     }, true);
                     regions[graph.nodes[i].obj.name][0].addEventListener('click', function() {
+                        if(currentPlayer !== thisPlayer) {
+                            // don't allow selection if it's not this player's turn
+                            return;
+                        }
 
                         // clear all styles
                         for(let j = 0; j < graph.nodes.length; j++) {
                             restoreStyle(graph.nodes[j]);
-                            // regions[graph.nodes[j].obj.name].animate(style, 0);
+                        }
+
+                        if(phase === 'reinforcement') {
+                            // TODO show popup
+                            regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                            socket.emit('reinforce', {
+                                region: graph.nodes[i].obj.name,
+                                num: 2
+                            });
+
                         }
 
                         // TODO show a popup to select the number of troops to move
@@ -132,7 +149,6 @@
                             regions[graph.nodes[i].obj.name].animate(neighborHoverStyle, 0);
                         } else {
                             restoreStyle(graph.nodes[i]);
-                            // regions[graph.nodes[i].obj.name].animate(style, 0);
                         }
                     }, true);
                 }
@@ -140,25 +156,36 @@
 
             socket.on('attack', function(data) {
                 console.log('Got attack event');
+                let indexFrom, indexTo;
                 for(let i = 0; i < graph.nodes.length; i++) {
                     if(graph.nodes[i].obj.name === data.from) {
+                        indexFrom = i;
                         console.log('Updating marker');
                         graph.nodes[i].obj.troops -= data.attackingDeaths;
                         troopMarkers[data.from].attr({text: graph.nodes[i].obj.troops})
                     }
                     if(graph.nodes[i].obj.name === data.to) {
+                        indexTo = i;
                         console.log('Updating marker');
                         graph.nodes[i].obj.troops -= data.defendingDeaths;
                         troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops});
+                        
                     }
                 }
 
-                if(data.conquered) {
-                    // TODO
+                if(data.defeated) {
+                    for(let j = 0; j < playerList.length; j++) {
+                        if(playerList[j].player === graph.nodes[indexTo].obj.owner) {
+                            playerList[j].alive = false;
+                            break;
+                        }
+                    }
+
+                    // TODO show animation ?
                 }
 
-                if(data.defeated) {
-                    // TODO
+                if(data.conquered) {
+                    graph.nodes[indexTo].obj.owner = graph.nodes[indexFrom].obj.owner;
                 }
             });
 
@@ -187,6 +214,17 @@
             let playerIndex = playerList.indexOf(node.obj.owner);
             regions[node.obj.name].attr(style);
             regions[node.obj.name].attr(playerStyles[playerIndex]);
+        }
+
+        function nextPhase() {
+            if(phase === 'reinforcement') {
+                phase = 'attack';
+            } else if(phase === 'attack') {
+                phase = 'move';
+            } else if(phase === 'move') {
+                phase = 'reinforcement';
+                // TODO switch player correctly
+            }
         }
     </script>
 </body>

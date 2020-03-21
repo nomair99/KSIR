@@ -65,7 +65,7 @@ var GameState = function(map, playerList) {
         }
         
         chosenPlayer = utils.choice(playersLeft);
-        this.map.nodes[next.value].obj.owner = playerList[chosenPlayer];
+        this.map.nodes[next.value].obj.owner = playerList[chosenPlayer].player;
         regionsLeft[chosenPlayer]--;
     }
     

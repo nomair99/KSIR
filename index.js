@@ -163,12 +163,12 @@ gameServer.on('connection', function(socket) {
     let sessionID = socket.request.sessionID;
     let user = users.search(sessionID);
     console.log('socket connected to game room');
-    console.log(`user: ${user.obj}`);
     if(!user) {
         console.log("User wasn't registered. Disconnecting.");
         socket.disconnect(true);
         return;
     }
+    console.log(`user: ${user.obj}`);
 
     let roomID = user.obj.roomID;
     console.log(roomID);
@@ -189,7 +189,7 @@ gameServer.on('connection', function(socket) {
     // send the map to all players
     let playerList = [];
     for(let i = 0; i < room.obj.users.length; i++) {
-        playerList.push(users.search(room.obj.users[i]).obj.username);
+        playerList.push({player: users.search(room.obj.users[i]).obj.username, alive: true});
     }
 
     console.log('getting map');
@@ -197,6 +197,8 @@ gameServer.on('connection', function(socket) {
     room.obj.gameState = new GameState(getMap(), playerList);
     room.obj.gameState.calculateReinforcements();
 
+    // ? should we change all of these to socket.emit
+    socket.emit('player name', user.obj.username);
     gameRoom.emit('player list', {playerList: playerList});
     gameRoom.emit('map', room.obj.gameState.map);
 
@@ -315,7 +317,7 @@ gameServer.on('connection', function(socket) {
 
     socket.on('reinforce', function(data) {
 
-        console.log('got reinforce event');
+        console.log('got reinforcement event');
 
         if(room.obj.gameState.phase !== 'reinforcement') {
             console.log('wrong phase');
@@ -437,15 +439,22 @@ gameServer.on('connection', function(socket) {
                 return;
             }
             room.obj.gameState.phase = 'attack';
+            gameRoom.emit('end phase', null);
         } else if(room.obj.gameState.phase === 'attack') {
             room.obj.gameState.phase = 'move';
+            gameRoom.emit('end phase', null);
         } else if(room.obj.gameState.phase === 'attack move') {
             console.log('tried to end phase during attack move');
             socket.disconnect(true);
             return;
         } else {
+            // TODO send the number of reinforcements
             room.obj.gameState.phase = 'reinforcement';
             room.obj.gameState.switchToNextPlayer();
+            room.obj.gameState.calculateReinforcements();
+
+            // emit how many reinforcements the next player has to place
+            gameRoom.emit('end phase', room.obj.gameState.reinforcementsRemaining);
         }
     });
 });
