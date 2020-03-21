@@ -192,6 +192,8 @@ gameServer.on('connection', function(socket) {
         playerList.push({player: users.search(room.obj.users[i]).obj.username, alive: true});
     }
 
+    // ? does this happen for each socket 
+    // ? move to start request
     console.log('getting map');
     // ! loads the predefined france map
     room.obj.gameState = new GameState(getMap(), playerList);

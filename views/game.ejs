@@ -16,6 +16,7 @@
         var selectedRegion = null;
         var neighborRegions = [];
         var troopMarkers = {};
+        var currentPlayerIndex = 0;
         var playerList, currentPlayer, thisPlayer;
         // var playerList = room.users;
         // var currentPlayer = playerList[0];
@@ -92,53 +93,54 @@
                             regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
                         }
                     }, true);
-                    regions[graph.nodes[i].obj.name][0].addEventListener('click', function() {
+                    regions[graph.nodes[i].obj.name][0].addEventListener('click', function(e) {
+                        e.stopPropagation();
                         if(currentPlayer !== thisPlayer) {
                             // don't allow selection if it's not this player's turn
                             return;
                         }
 
                         // clear all styles
-                        for(let j = 0; j < graph.nodes.length; j++) {
-                            restoreStyle(graph.nodes[j]);
-                        }
+                        restoreAllStyles();
 
                         if(phase === 'reinforcement') {
                             // TODO show popup
+                            selectedRegion = graph.nodes[i].obj.name;
                             regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
                             socket.emit('reinforce', {
                                 region: graph.nodes[i].obj.name,
                                 num: 2
                             });
 
-                        }
-
-                        // TODO show a popup to select the number of troops to move
-                        if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
-                            // a region was selected and the user then clicked on a neighboring region
-
-                            let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
-                            console.log(payload);
-                            socket.emit('attack', payload);
-
-                            selectedRegion = null;
-                            neighborRegions = [];
-                        } else {
-                            if(graph.nodes[i].obj.name !== selectedRegion) {
-                                for(let j = 0; j < graph.nodes.length; j++) {
-                                    if(graph.adjacencyMatrix[i][j]) {
-                                        neighborRegions.push(graph.nodes[j].obj.name);
-                                        regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
-                                    }
-                                }
-
-                                regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
-                                selectedRegion = graph.nodes[i].obj.name;
-                            } else {
+                        } else if(phase === 'attack') {
+                            // TODO show a popup to select the number of troops to move
+                            if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                                // a region was selected and the user then clicked on a neighboring region
+    
+                                let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
+                                console.log(payload);
+                                socket.emit('attack', payload);
+    
                                 selectedRegion = null;
                                 neighborRegions = [];
+                            } else {
+                                if(graph.nodes[i].obj.name !== selectedRegion) {
+                                    for(let j = 0; j < graph.nodes.length; j++) {
+                                        if(graph.adjacencyMatrix[i][j]) {
+                                            neighborRegions.push(graph.nodes[j].obj.name);
+                                            regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                                        }
+                                    }
+    
+                                    regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                                    selectedRegion = graph.nodes[i].obj.name;
+                                } else {
+                                    selectedRegion = null;
+                                    neighborRegions = [];
+                                }
                             }
                         }
+
                     }, true);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
@@ -210,10 +212,37 @@
             });
         });
 
+        document.addEventListener('click', function(e) {
+            selectedRegion = null;
+            neighborRegions = [];
+            restoreAllStyles();
+        });
+
         function restoreStyle(node) {
-            let playerIndex = playerList.indexOf(node.obj.owner);
+            let playerIndex;
+            for(let j = 0; j < playerList.length; j++) {
+                if(playerList[j].player === node.obj.owner) {
+                    playerIndex = j;
+                    break;
+                }
+            }
+            
             regions[node.obj.name].attr(style);
             regions[node.obj.name].attr(playerStyles[playerIndex]);
+        }
+
+        function restoreAllStyles() {
+            for(let j = 0; j < graph.nodes.length; j++) {
+                restoreStyle(graph.nodes[j]);
+            }
+        }
+
+        function switchPlayer() {
+
+            do {
+                currentPlayerIndex = (currentPlayerIndex + 1) % playerList.length;
+                currentPlayer = playerList[currentPlayerIndex].player;
+            } while(!playerList[currentPlayerIndex].alive);
         }
 
         function nextPhase() {
@@ -223,7 +252,7 @@
                 phase = 'move';
             } else if(phase === 'move') {
                 phase = 'reinforcement';
-                // TODO switch player correctly
+                switchPlayer();
             }
         }
     </script>

@@ -5,10 +5,11 @@ var GameState = function(map, playerList) {
 
     this.map = map;
     this.numPlayers = playerList.length;
-    this.playerList = playerList.map((player) => {return {
-        player: player,
-        alive: true
-    }});
+    // this.playerList = playerList.map((player) => {return {
+    //     player: player,
+    //     alive: true
+    // }});
+    this.playerList = playerList;
 
     this.reinforcementsRemaining = 0;
 
@@ -72,7 +73,7 @@ var GameState = function(map, playerList) {
     this.switchToNextPlayer = function() {
         do {
             this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.playerList.length;
-            this.currentPlayer = this.playerList[this.currentPlayerIndex];
+            this.currentPlayer = this.playerList[this.currentPlayerIndex].player;
         } while(!this.playerList[this.currentPlayerIndex].alive);
     };
 
