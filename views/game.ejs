@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= room.name %></title>
 </head>
-<body>
+<body style="background-color:#f0d384;">
     <div id="map"></div>
     <button id="reinbtn">Reinforce</button>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
@@ -23,39 +23,39 @@
 
         var style = {
             fill: "#ddd",
-            stroke: "#aaa",
-            "stroke-width": 1,
+            stroke: "#f0d384",
+            "stroke-width": 2,
             "stroke-linejoin": "round",
             cursor: "pointer"
         };
         var hoverStyle = {
-            fill: "#FF7C78"
+            fill: "#ffabab"
         };
         var neighborHoverStyle = {
-            fill: "#A8BED5"
+            fill: "#824b4b"
         };
         var selectedStyle = {
-            fill: "#E8E889"
+            fill: "#9c1616"
         };
 
         var playerStyles = [];
         playerStyles.push({
-            fill: "#E8CE89"
+           fill: "#bf4b4b"
         });
         playerStyles.push({
-            fill: "#A6FFA3"
+            fill: "#117321"
         });
         playerStyles.push({
-            fill: "#89BAE8"
+            fill: "#1f4991"
         });
         playerStyles.push({
-            fill: "#FA96FF"
+            fill: "#929431"
         });
 
         window.addEventListener('load', function() {
             let container = document.getElementById('map');
             map = new Raphael(container, 620, 600);
-            
+
             socket = io('/game');
 
             socket.on('player list', function(data) {
@@ -78,7 +78,7 @@
                     // draw circle with number of troops
                     let centerX = bBox.x + bBox.width / 2;
                     let centerY = bBox.y + bBox.height / 2;
-                    map.circle(centerX, centerY, 10).attr({fill: "#A8BED5"});
+                    map.circle(centerX, centerY, 10).attr({fill: "#e6e6e6"});
                     troopMarkers[graph.nodes[i].obj.name] = map.text(centerX, centerY, graph.nodes[i].obj.troops);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
