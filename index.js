@@ -634,19 +634,15 @@ app.post('/login', function(req, res) {
         return;
     }
     
-    // ? is this still needed?
-    let isNew = false;
-
     if(!users.search(req.sessionID)) {
         users.insert({
             sessionID: req.sessionID,
             username: req.body.username
         })
-        isNew = true;
     }
 
+    console.log('logging in');
     res.redirect('/rooms');
-    return true;
 });
 
 http.listen(process.env.PORT || 3000, function() {
