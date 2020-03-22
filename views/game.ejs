@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/styles/game.css">
     <title><%= room.name %></title>
 </head>
-<body style="background-color:#f0d384;">
+<body>
     <div id="map"></div>
     <div id="game-panel">
         <div id="reinforcements-remaining"></div>
@@ -252,7 +252,7 @@
             }
 
             // display the new number
-            reinforementsNumberBox.appendChild(document.createTextNode(reinforcementsRemaining));
+            reinforementsNumberBox.appendChild(document.createTextNode(`Reinforcements Remaining: ${reinforcementsRemaining}`));
         }
 
         function switchPlayer() {

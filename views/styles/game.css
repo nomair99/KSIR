@@ -4,6 +4,7 @@
 
 html, body {
     padding: 0;
+    background-color:#f0d384;
 }
 
 svg {
@@ -27,7 +28,6 @@ svg {
 
 #game-panel div {
     vertical-align: middle;
-    width: 100px;
     display: inline-block;
     padding-bottom: 10px;
     padding-top: 10px;
@@ -35,8 +35,13 @@ svg {
 }
 
 #end-phase {
+    width: 100px;
     background-color: whitesmoke;
     color: black;
+}
+
+#reinforcements-remaining {
+    width: 250px;
 }
 
 #end-phase:hover {
