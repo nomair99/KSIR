@@ -1,11 +1,20 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    padding: 0;
+}
+
 svg {
     width: 100%;
 }
 
 #game-panel {
-    /* position: absolute; */
+    position: fixed;
     width: 100%;
     bottom: 0;
+    left: 0;
     display: flex;
     justify-content: space-between;
     background-color: black;
@@ -14,7 +23,6 @@ svg {
     font-weight: bold;
     padding: 0;
     margin: 0;
-    /* TODO add colours */
 }
 
 #game-panel div {
@@ -25,10 +33,6 @@ svg {
     padding-top: 10px;
     text-align: center;
 }
-
-/* #reinforcements-remaining {
-    padding-left: 5px;
-} */
 
 #end-phase {
     background-color: whitesmoke;
