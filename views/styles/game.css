@@ -33,6 +33,11 @@
 
 }
 
+.pickerbutton:hover {
+    cursor: pointer;
+    background-color: #bbbbbb;
+  }
+
 html {
     font-family: system-ui, sans-serif;
   }
@@ -241,6 +246,7 @@ html {
   }
   button:hover {
     cursor: pointer;
+    background-color: #bbbbbb;
   }
 
   @media (min-width: 900px) {
