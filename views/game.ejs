@@ -1,16 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        #popupposition {
+    top: 0; 
+    left: 0; 
+    position: fixed;
+    width: 100%; 
+    height: 120%;
+    background-color: rgba(0,0,0,0.7); 
+    display: none;
+}
+
+.popupwrapper {
+    width: 550px;
+     margin: 50px auto; 
+     text-align: left;
+}
+.popupcontent {
+    background-color: #FFF; 
+    padding: 15px;
+}
+    </style>
+    <!-- <link rel="stylesheet" href="./styles/game.css" type="text/css"> -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= room.name %></title>
-    <link rel="stylesheet" href="./styles/game.css" type="text/css">
+    
 </head>
 <body>
     <div  id="popupposition">
         <div class = "popupwrapper">
             <div class = "popupcontent">
                 <h3>Please select the number of troops</h3>
+                <button class="cancel" οnclick="cancel()">Cancel</button>
             </div>
         </div>
     </div>
@@ -106,9 +129,11 @@
 
                         // TODO show a popup to select the number of troops to move
                         //selectroops(10);
+                        //toggle_visibility("popupposition");
+                        selectroops(graph.nodes[i].obj.troops);
                         if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
                             // a region was selected and the user then clicked on a neighboring region
-                            selectroops(graph.nodes[i].obj.troops);
+                            
                             let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
                             console.log(payload);
                             socket.emit('attack', payload);
@@ -191,16 +216,28 @@
         }
 
         function selectroops(n, cross) {
-            var popup = document.getElementById("popupposition");
+            var popup = document.querySelector("popupcontent");
             toggle_visibility("popupposition");
             for (var i=0; i<n; i++) {
                
                 var elem = document.createElement('input');
                 elem.type = 'button';
                 elem.value = i + 1;
+                elem.onclick = "returntroops(elem.value, n)";
+                elem.className = "pickerbutton";
                 popup.append(elem);
             }
+
             
+            
+
+        }
+
+        function returntroops(n, total) {
+            var elem = document.getElementsByClassName("pickerbutton");
+            elem.parentNode.removeChild(elem);
+            return n;
+
 
         }
 
