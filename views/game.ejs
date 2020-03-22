@@ -5,13 +5,207 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/styles/game.css">
     <title><%= room.name %></title>
+    <link rel="stylesheet" href="/styles/game.css" type="text/css">
+    
+
 </head>
-<body>
+<body style="background-color:#f0d384;">
     <div id="map"></div>
     <div id="game-panel">
         <div id="reinforcements-remaining"></div>
         <div id="end-phase">End Phase</div>
     </div>
+    <button id="reinbtn">Reinforce</button>
+
+    <div id="die_pop_content">
+    <div class="top">
+        <a href="javascript:void(0)" id="cancel">&#935;</a>
+    </div>
+     <div class="dice">
+      <ol class="die-list even-roll" data-roll="1" id="die-1">
+        <li class="die-item" data-side="1">
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="2">
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="3">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="4">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="5">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="6">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+      </ol>
+      <ol class="die-list even-roll" data-roll="1" id="die-1">
+        <li class="die-item" data-side="1">
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="2">
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="3">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="4">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="5">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="6">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+      </ol>
+      <ol class="die-list odd-roll" data-roll="1" id="die-2">
+        <li class="die-item" data-side="1">
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="2">
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="3">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="4">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="5">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="6">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+      </ol>
+      <ol class="die-list odd-roll" data-roll="1" id="die-2">
+        <li class="die-item" data-side="1">
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="2">
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="3">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="4">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="5">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="6">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+      </ol>
+    </div>
+    <button type="button" id="roll-button">Roll Dice</button>
+</div>
+<div  id="popupposition">
+    <div class = "popupwrapper">
+        <div class = "popupcontent">
+            <h3>Please select the number of troops</h3>
+            <div class = "popupbuttons">
+
+            </div>
+            <button class="cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+    <script src="./die_app.js"></script>
+
+    <script>
+        function cancel() {
+           let d = document.getElementById("die_pop_content");
+           d.style.display="none";
+        }
+        function rollDice() {
+          const dice = [...document.querySelectorAll(".die-list")];
+          dice.forEach(die => {
+            toggleClasses(die);
+            die.dataset.roll = getRandomNumber(1, 6);
+          });
+        }
+        function toggleClasses(die) {
+          die.classList.toggle("odd-roll");
+          die.classList.toggle("even-roll");
+        }
+
+        function getRandomNumber(min, max) {
+          min = Math.ceil(min);
+          max = Math.floor(max);
+          return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        document.getElementById("roll-button").addEventListener("click", rollDice);
+        document.getElementById("cancel").addEventListener("click", cancel);
+    </script>
+    <!-- <script src="./app.js"></script> -->
+
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
     <script>
@@ -105,6 +299,18 @@
 
                         // clear all styles
                         restoreAllStyles();
+                        
+
+                        // TODO show a popup to select the number of troops to move
+                        
+                        
+                        if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                            // a region was selected and the user then clicked on a neighboring region
+                            selectroops(graph.nodes[i].obj.troops);
+
+                            //Craps animation
+                            let d = document.getElementById("die_pop_content");
+                            d.style.display="block";
 
                         if(phase === 'reinforcement') {
                             // TODO show popup
@@ -145,6 +351,7 @@
                                     neighborRegions = [];
                                 }
                             }
+                        }
                         }
 
                     }, true);
@@ -273,6 +480,54 @@
                 switchPlayer();
             }
         }
+        function selectroops(n) {
+            var popup = document.querySelector(".popupbuttons");
+            var cancel = document.querySelector(".cancel")
+            toggle_visibility("popupposition");
+
+            for (var i=0; i<n-1; i++) {
+                              
+                var elem = document.createElement('input');
+                elem.type = 'button';
+                elem.value = i + 1;
+                elem.className = "pickerbutton";
+                elem.onclick = function() {returntroops(this.value)};
+                
+                popup.appendChild(elem);
+            }
+
+            cancel.onclick = function() {returntroops(0)};
+
+
+        }
+
+        
+        function returntroops(n) {
+            console.log(n);
+            
+            var elem = document.querySelectorAll(".pickerbutton");
+            var l = elem.length;
+            for (i=0; i<l; i++) {
+                    elem[i].parentNode.removeChild(elem[i]);
+
+            }
+            
+            toggle_visibility("popupposition");
+
+          
+            return n;
+
+
+        }
+
+
+        function toggle_visibility(id) {
+			       var n = document.getElementById(id);
+			       if(n.style.display == 'block')
+			          n.style.display = 'none';
+			       else
+			          n.style.display = 'block';
+			    }
     </script>
 </body>
 </html>
