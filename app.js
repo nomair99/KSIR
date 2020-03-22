@@ -16,5 +16,10 @@ function getRandomNumber(min, max) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+ function cancel() {
+   let d = document.getElementById("die_pop_content");
+   d.style.display="none";
+}
 
 document.getElementById("roll-button").addEventListener("click", rollDice);
+document.getElementById("cancel").addEventListener("click", cancel);
