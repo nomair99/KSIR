@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        #popupposition {
+    top: 0; 
+    left: 0; 
+    position: fixed;
+    width: 100%; 
+    height: 120%;
+    background-color: rgba(0,0,0,0.7); 
+    display: none;
+}
+
+.popupwrapper {
+    width: 550px;
+     margin: 50px auto; 
+     text-align: left;
+}
+.popupcontent {
+    background-color: #FFF; 
+    padding: 15px;
+}
+    </style>
+    <!-- <link rel="stylesheet" href="./styles/game.css" type="text/css"> -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= room.name %></title>
+    
+</head>
+<body>
+    <div  id="popupposition">
+        <div class = "popupwrapper">
+            <div class = "popupcontent">
+                <h3>Please select the number of troops</h3>
+                <button class="cancel" οnclick="cancel()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <div id="map"></div>
+    <button id="reinbtn">Reinforce</button>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+    <script>
+        var graph;
+        var regions = {};
+        var selectedRegion = null;
+        var neighborRegions = [];
+        var troopMarkers = {};
+        var playerList, currentPlayer;
+        // var playerList = room.users;
+        // var currentPlayer = playerList[0];
+        var phase = 'reinforcement';
+
+        var style = {
+            fill: "#ddd",
+            stroke: "#aaa",
+            "stroke-width": 1,
+            "stroke-linejoin": "round",
+            cursor: "pointer"
+        };
+        var hoverStyle = {
+            fill: "#FF7C78"
+        };
+        var neighborHoverStyle = {
+            fill: "#A8BED5"
+        };
+        var selectedStyle = {
+            fill: "#E8E889"
+        };
+
+        var playerStyles = [];
+        playerStyles.push({
+            fill: "#E8CE89"
+        });
+        playerStyles.push({
+            fill: "#A6FFA3"
+        });
+        playerStyles.push({
+            fill: "#89BAE8"
+        });
+        playerStyles.push({
+            fill: "#FA96FF"
+        });
+
+        window.addEventListener('load', function() {
+            let container = document.getElementById('map');
+            map = new Raphael(container, 620, 600);
+            
+            socket = io('/game');
+
+            socket.on('player list', function(data) {
+                console.log('got player list');
+                playerList = data.playerList;
+                currentPlayer = playerList[0];
+                console.log(playerList);
+            });
+
+            socket.on('map', function(g) {
+
+                graph = g;
+
+                let playerIndex;
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    regions[graph.nodes[i].obj.name] = map.path(graph.nodes[i].obj.path);
+                    restoreStyle(graph.nodes[i]);
+                    let bBox = regions[graph.nodes[i].obj.name].getBBox();
+
+                    // draw circle with number of troops
+                    let centerX = bBox.x + bBox.width / 2;
+                    let centerY = bBox.y + bBox.height / 2;
+                    map.circle(centerX, centerY, 10).attr({fill: "#A8BED5"});
+                    troopMarkers[graph.nodes[i].obj.name] = map.text(centerX, centerY, graph.nodes[i].obj.troops);
+
+                    regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
+
+                        // ? what if two regions have the same name
+                        if(graph.nodes[i].obj.name !== selectedRegion) {
+                            regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
+                        }
+                    }, true);
+                    regions[graph.nodes[i].obj.name][0].addEventListener('click', function() {
+
+                        // clear all styles
+                        for(let j = 0; j < graph.nodes.length; j++) {
+                            restoreStyle(graph.nodes[j]);
+                            // regions[graph.nodes[j].obj.name].animate(style, 0);
+                        }
+
+                        // TODO show a popup to select the number of troops to move
+                        //selectroops(10);
+                        //toggle_visibility("popupposition");
+                        selectroops(graph.nodes[i].obj.troops);
+                        if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                            // a region was selected and the user then clicked on a neighboring region
+                            
+                            let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
+                            console.log(payload);
+                            socket.emit('attack', payload);
+
+                            selectedRegion = null;
+                            neighborRegions = [];
+                        } else {
+                            if(graph.nodes[i].obj.name !== selectedRegion) {
+                                for(let j = 0; j < graph.nodes.length; j++) {
+                                    if(graph.adjacencyMatrix[i][j]) {
+                                        neighborRegions.push(graph.nodes[j].obj.name);
+                                        regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                                    }
+                                }
+
+                                regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                                selectedRegion = graph.nodes[i].obj.name;
+                            } else {
+                                selectedRegion = null;
+                                neighborRegions = [];
+                            }
+                        }
+                    }, true);
+
+                    regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
+
+                        if(graph.nodes[i].obj.name === selectedRegion) {
+                            regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                        } else if(neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                            regions[graph.nodes[i].obj.name].animate(neighborHoverStyle, 0);
+                        } else {
+                            restoreStyle(graph.nodes[i]);
+                            // regions[graph.nodes[i].obj.name].animate(style, 0);
+                        }
+                    }, true);
+                }
+            });
+
+            socket.on('attack', function(data) {
+                console.log('Got attack event');
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    if(graph.nodes[i].obj.name === data.from) {
+                        console.log('Updating marker');
+                        graph.nodes[i].obj.troops -= data.attackingDeaths;
+                        troopMarkers[data.from].attr({text: graph.nodes[i].obj.troops})
+                    }
+                    if(graph.nodes[i].obj.name === data.to) {
+                        console.log('Updating marker');
+                        graph.nodes[i].obj.troops -= data.defendingDeaths;
+                        troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops});
+                    }
+                }
+            });
+
+            socket.on('reinforce', function(data) {
+                console.log('got reinforce event');
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    if(graph.nodes[i].obj.name === data.region) {
+                        graph.nodes[i].obj.troops += data.num;
+                        troopMarkers[data.region].attr({text: graph.nodes[i].obj.troops});
+                        break;
+                    }
+                }
+            });
+
+            document.getElementById('reinbtn').addEventListener('click', function(e) {
+                e.preventDefault();
+
+                socket.emit('reinforce', {
+                    region: 'picardie',
+                    num: 2
+                });
+            });
+        });
+
+        function restoreStyle(node) {
+            let playerIndex = playerList.indexOf(node.obj.owner);
+            regions[node.obj.name].attr(style);
+            regions[node.obj.name].attr(playerStyles[playerIndex]);
+        }
+
+        function selectroops(n, cross) {
+            var popup = document.querySelector(".popupcontent");
+            toggle_visibility("popupposition");
+            for (var i=0; i<n; i++) {
+               
+                var elem = document.createElement('input');
+                elem.type = 'button';
+                elem.value = i + 1;
+                elem.onclick = "returntroops(elem.value, n)";
+                elem.className = "pickerbutton";
+                popup.appendChild(elem);
+            }
+
+            
+            
+
+        }
+
+        function returntroops(n, total) {
+            //for (var i=0; i < total; i++){
+                var elem = document.querySelectorAll(".pickerbutton");
+                elem.parentNode.removeChild(elem);
+                toggle_visibility("popuposition");
+            //}
+          
+            return n;
+
+
+        }
+
+        function toggle_visibility(id) {
+			       var n = document.getElementById(id);
+			       if(n.style.display == 'block')
+			          n.style.display = 'none';
+			       else
+			          n.style.display = 'block';
+			    }
+    </script>
+   
+</body>
+</html>
