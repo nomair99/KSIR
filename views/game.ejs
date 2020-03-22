@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/game.css">
     <title><%= room.name %></title>
 </head>
 <body>
     <div id="map"></div>
-    <button id="reinbtn">Reinforce</button>
+    <div id="game-panel">
+        <div id="reinforcements-remaining"></div>
+        <div id="end-phase">End Phase</div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
     <script>
@@ -16,52 +20,56 @@
         var selectedRegion = null;
         var neighborRegions = [];
         var troopMarkers = {};
-        var playerList, currentPlayer;
-        // var playerList = room.users;
-        // var currentPlayer = playerList[0];
+        var currentPlayerIndex = 0;
+        var reinforcementsRemaining = 0;
+        var playerList, currentPlayer, thisPlayer;
         var phase = 'reinforcement';
 
         var style = {
             fill: "#ddd",
-            stroke: "#aaa",
-            "stroke-width": 1,
+            stroke: "#f0d384",
+            "stroke-width": 2,
             "stroke-linejoin": "round",
             cursor: "pointer"
         };
         var hoverStyle = {
-            fill: "#FF7C78"
+            fill: "#ffabab"
         };
         var neighborHoverStyle = {
-            fill: "#A8BED5"
+            fill: "#824b4b"
         };
         var selectedStyle = {
-            fill: "#E8E889"
+            fill: "#9c1616"
         };
 
         var playerStyles = [];
         playerStyles.push({
-            fill: "#E8CE89"
+           fill: "#bf4b4b"
         });
         playerStyles.push({
-            fill: "#A6FFA3"
+            fill: "#117321"
         });
         playerStyles.push({
-            fill: "#89BAE8"
+            fill: "#1f4991"
         });
         playerStyles.push({
-            fill: "#FA96FF"
+            fill: "#929431"
         });
 
         window.addEventListener('load', function() {
             let container = document.getElementById('map');
             map = new Raphael(container, 620, 600);
-            
+
             socket = io('/game');
+
+            socket.on('player name', function(data) {
+                thisPlayer = data;
+            });
 
             socket.on('player list', function(data) {
                 console.log('got player list');
                 playerList = data.playerList;
-                currentPlayer = playerList[0];
+                currentPlayer = playerList[0].player;
                 console.log(playerList);
             });
 
@@ -78,7 +86,7 @@
                     // draw circle with number of troops
                     let centerX = bBox.x + bBox.width / 2;
                     let centerY = bBox.y + bBox.height / 2;
-                    map.circle(centerX, centerY, 10).attr({fill: "#A8BED5"});
+                    map.circle(centerX, centerY, 10).attr({fill: "#e6e6e6"});
                     troopMarkers[graph.nodes[i].obj.name] = map.text(centerX, centerY, graph.nodes[i].obj.troops);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
@@ -88,40 +96,57 @@
                             regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
                         }
                     }, true);
-                    regions[graph.nodes[i].obj.name][0].addEventListener('click', function() {
+                    regions[graph.nodes[i].obj.name][0].addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if(currentPlayer !== thisPlayer) {
+                            // don't allow selection if it's not this player's turn
+                            return;
+                        }
 
                         // clear all styles
-                        for(let j = 0; j < graph.nodes.length; j++) {
-                            restoreStyle(graph.nodes[j]);
-                            // regions[graph.nodes[j].obj.name].animate(style, 0);
-                        }
+                        restoreAllStyles();
 
-                        // TODO show a popup to select the number of troops to move
-                        if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
-                            // a region was selected and the user then clicked on a neighboring region
+                        if(phase === 'reinforcement') {
+                            // TODO show popup
+                            // don't show if reinforcementsRemaining <= 0
+                            let num = 2;
 
-                            let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
-                            console.log(payload);
-                            socket.emit('attack', payload);
+                            selectedRegion = graph.nodes[i].obj.name;
+                            regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                            socket.emit('reinforce', {
+                                region: graph.nodes[i].obj.name,
+                                num: num
+                            });
 
-                            selectedRegion = null;
-                            neighborRegions = [];
-                        } else {
-                            if(graph.nodes[i].obj.name !== selectedRegion) {
-                                for(let j = 0; j < graph.nodes.length; j++) {
-                                    if(graph.adjacencyMatrix[i][j]) {
-                                        neighborRegions.push(graph.nodes[j].obj.name);
-                                        regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
-                                    }
-                                }
-
-                                regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
-                                selectedRegion = graph.nodes[i].obj.name;
-                            } else {
+                        } else if(phase === 'attack') {
+                            // TODO show a popup to select the number of troops to move
+                            if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                                // a region was selected and the user then clicked on a neighboring region
+    
+                                let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
+                                console.log(payload);
+                                socket.emit('attack', payload);
+    
                                 selectedRegion = null;
                                 neighborRegions = [];
+                            } else {
+                                if(graph.nodes[i].obj.name !== selectedRegion) {
+                                    for(let j = 0; j < graph.nodes.length; j++) {
+                                        if(graph.adjacencyMatrix[i][j]) {
+                                            neighborRegions.push(graph.nodes[j].obj.name);
+                                            regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                                        }
+                                    }
+    
+                                    regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                                    selectedRegion = graph.nodes[i].obj.name;
+                                } else {
+                                    selectedRegion = null;
+                                    neighborRegions = [];
+                                }
                             }
                         }
+
                     }, true);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
@@ -132,7 +157,6 @@
                             regions[graph.nodes[i].obj.name].animate(neighborHoverStyle, 0);
                         } else {
                             restoreStyle(graph.nodes[i]);
-                            // regions[graph.nodes[i].obj.name].animate(style, 0);
                         }
                     }, true);
                 }
@@ -140,25 +164,36 @@
 
             socket.on('attack', function(data) {
                 console.log('Got attack event');
+                let indexFrom, indexTo;
                 for(let i = 0; i < graph.nodes.length; i++) {
                     if(graph.nodes[i].obj.name === data.from) {
+                        indexFrom = i;
                         console.log('Updating marker');
                         graph.nodes[i].obj.troops -= data.attackingDeaths;
                         troopMarkers[data.from].attr({text: graph.nodes[i].obj.troops})
                     }
                     if(graph.nodes[i].obj.name === data.to) {
+                        indexTo = i;
                         console.log('Updating marker');
                         graph.nodes[i].obj.troops -= data.defendingDeaths;
                         troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops});
+                        
                     }
                 }
 
-                if(data.conquered) {
-                    // TODO
+                if(data.defeated) {
+                    for(let j = 0; j < playerList.length; j++) {
+                        if(playerList[j].player === graph.nodes[indexTo].obj.owner) {
+                            playerList[j].alive = false;
+                            break;
+                        }
+                    }
+
+                    // TODO show animation ?
                 }
 
-                if(data.defeated) {
-                    // TODO
+                if(data.conquered) {
+                    graph.nodes[indexTo].obj.owner = graph.nodes[indexFrom].obj.owner;
                 }
             });
 
@@ -171,22 +206,72 @@
                         break;
                     }
                 }
+
+                reinforcementsRemaining -= data.num;
+                updateReinforcementsRemaining();
             });
 
-            document.getElementById('reinbtn').addEventListener('click', function(e) {
-                e.preventDefault();
-
-                socket.emit('reinforce', {
-                    region: 'picardie',
-                    num: 2
-                });
+            socket.on('reinforcements remaining', function(num) {
+                reinforcementsRemaining = num;
+                updateReinforcementsRemaining();
             });
         });
 
+        document.addEventListener('click', function(e) {
+            selectedRegion = null;
+            neighborRegions = [];
+            restoreAllStyles();
+        });
+
         function restoreStyle(node) {
-            let playerIndex = playerList.indexOf(node.obj.owner);
+            let playerIndex;
+            for(let j = 0; j < playerList.length; j++) {
+                if(playerList[j].player === node.obj.owner) {
+                    playerIndex = j;
+                    break;
+                }
+            }
+
             regions[node.obj.name].attr(style);
             regions[node.obj.name].attr(playerStyles[playerIndex]);
+        }
+
+        function restoreAllStyles() {
+            for(let j = 0; j < graph.nodes.length; j++) {
+                restoreStyle(graph.nodes[j]);
+            }
+        }
+
+        function updateReinforcementsRemaining() {
+            console.log(`updating reinforcements remaining: ${reinforcementsRemaining}`);
+            let reinforementsNumberBox = document.querySelector('#reinforcements-remaining');
+
+            // remove existing text
+            while(reinforementsNumberBox.firstChild) {
+                reinforementsNumberBox.removeChild(reinforementsNumberBox.firstChild);
+            }
+
+            // display the new number
+            reinforementsNumberBox.appendChild(document.createTextNode(`Reinforcements Remaining: ${reinforcementsRemaining}`));
+        }
+
+        function switchPlayer() {
+
+            do {
+                currentPlayerIndex = (currentPlayerIndex + 1) % playerList.length;
+                currentPlayer = playerList[currentPlayerIndex].player;
+            } while(!playerList[currentPlayerIndex].alive);
+        }
+
+        function nextPhase() {
+            if(phase === 'reinforcement') {
+                phase = 'attack';
+            } else if(phase === 'attack') {
+                phase = 'move';
+            } else if(phase === 'move') {
+                phase = 'reinforcement';
+                switchPlayer();
+            }
         }
     </script>
 </body>
