@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= room.name %></title>
+    <!-- <link rel="stylesheet" href="./styles/die_styles.css" type="text/css"> -->
+    <!-- I don't know why this link doesn't work, but if write in the "<style></style>", it works, also for the script -->
+</head>
+<body style="background-color:#f0d384;">
+    <div id="map"></div>
+    <button id="reinbtn">Reinforce</button>
+
+    <div id="die_pop_content">
+    <div class="top">
+        <a href="javascript:void(0)" id="cancel">&#935;</a>
+    </div>
+     <div class="dice">
+      <ol class="die-list even-roll" data-roll="1" id="die-1">
+        <li class="die-item" data-side="1">
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="2">
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="3">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="4">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="5">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="6">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+      </ol>
+      <ol class="die-list even-roll" data-roll="1" id="die-1">
+        <li class="die-item" data-side="1">
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="2">
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="3">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="4">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="5">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="6">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+      </ol>
+      <ol class="die-list odd-roll" data-roll="1" id="die-2">
+        <li class="die-item" data-side="1">
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="2">
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="3">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="4">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="5">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="6">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+      </ol>
+      <ol class="die-list odd-roll" data-roll="1" id="die-2">
+        <li class="die-item" data-side="1">
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="2">
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="3">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="4">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="5">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+        <li class="die-item" data-side="6">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </li>
+      </ol>
+    </div>
+    <button type="button" id="roll-button">Roll Dice</button>
+</div>
+    <script src="./die_app.js"></script>
+    <style>
+        html {
+          font-family: system-ui, sans-serif;
+        }
+        #die_pop_content{
+            position: fixed;
+            left: 0;
+            top:0;
+            width: 100%;
+            height: 100%;
+            background-color: grey;
+            z-index: 1;
+            opacity: 0.8;
+            display: none;
+        }
+        .top{
+            width: 95%;
+            height: 50px;
+            margin: 2px auto;
+        }
+        .top a{
+            float: right;
+            margin-right: 0;
+            text-decoration: none;
+            opacity: 0.5;
+            font-size: 30px;
+        }
+        .dice {
+          align-items: center;
+          display: grid;
+          grid-gap: 2rem;
+          grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+          grid-template-rows: auto;
+          justify-items: center;
+          padding: 2rem;
+          perspective: 600px;
+        }
+        .die-list {
+          display: grid;
+          grid-template-columns: 1fr;
+          grid-template-rows: 1fr;
+          height: 6rem;
+          list-style-type: none;
+          transform-style: preserve-3d;
+          width: 6rem;
+        }
+        .even-roll {
+          transition: transform 1.5s ease-out;
+        }
+        .odd-roll {
+          transition: transform 1.25s ease-out;
+        }
+        .die-item {
+          background-color: #A00000;
+          box-shadow: inset -0.35rem 0.35rem 0.75rem rgba(0, 0, 0, 0.3),
+            inset 0.5rem -0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+          display: grid;
+          grid-column: 1;
+          grid-row: 1;
+          grid-template-areas:
+            "one two three"
+            "four five six"
+            "seven eight nine";
+          grid-template-columns: repeat(3, 1fr);
+          grid-template-rows: repeat(3, 1fr);
+          height: 100%;
+          padding: 1rem;
+          width: 100%;
+        }
+        .dot {
+          align-self: center;
+          background-color: #fff;
+          border-radius: 50%;
+          box-shadow: inset -0.15rem 0.15rem 0.25rem rgba(0, 0, 0, 0.5);
+          display: block;
+          height: 1.25rem;
+          justify-self: center;
+          width: 1.25rem;
+        }
+        .even-roll[data-roll="1"] {
+          transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg);
+        }
+        .even-roll[data-roll="2"] {
+          transform: rotateX(450deg) rotateY(720deg) rotateZ(360deg);
+        }
+        .even-roll[data-roll="3"] {
+          transform: rotateX(360deg) rotateY(630deg) rotateZ(360deg);
+        }
+        .even-roll[data-roll="4"] {
+          transform: rotateX(360deg) rotateY(810deg) rotateZ(360deg);
+        }
+        .even-roll[data-roll="5"] {
+          transform: rotateX(270deg) rotateY(720deg) rotateZ(360deg);
+        }
+        .even-roll[data-roll="6"] {
+          transform: rotateX(360deg) rotateY(900deg) rotateZ(360deg);
+        }
+        .odd-roll[data-roll="1"] {
+          transform: rotateX(-360deg) rotateY(-720deg) rotateZ(-360deg);
+        }
+        .odd-roll[data-roll="2"] {
+          transform: rotateX(-270deg) rotateY(-720deg) rotateZ(-360deg);
+        }
+        .odd-roll[data-roll="3"] {
+          transform: rotateX(-360deg) rotateY(-810deg) rotateZ(-360deg);
+        }
+        .odd-roll[data-roll="4"] {
+          transform: rotateX(-360deg) rotateY(-630deg) rotateZ(-360deg);
+        }
+        .odd-roll[data-roll="5"] {
+          transform: rotateX(-450deg) rotateY(-720deg) rotateZ(-360deg);
+        }
+        .odd-roll[data-roll="6"] {
+          transform: rotateX(-360deg) rotateY(-900deg) rotateZ(-360deg);
+        }
+        [data-side="1"] {
+          transform: rotate3d(0, 0, 0, 90deg) translateZ(4rem);
+        }
+        [data-side="2"] {
+          transform: rotate3d(-1, 0, 0, 90deg) translateZ(4rem);
+        }
+        [data-side="3"] {
+          transform: rotate3d(0, 1, 0, 90deg) translateZ(4rem);
+        }
+        [data-side="4"] {
+          transform: rotate3d(0, -1, 0, 90deg) translateZ(4rem);
+        }
+        [data-side="5"] {
+          transform: rotate3d(1, 0, 0, 90deg) translateZ(4rem);
+        }
+        [data-side="6"] {
+          transform: rotate3d(1, 0, 0, 180deg) translateZ(4rem);
+        }
+        [data-side="1"] .dot:nth-of-type(1) {
+          grid-area: five;
+        }
+        [data-side="2"] .dot:nth-of-type(1) {
+          grid-area: one;
+        }
+        [data-side="2"] .dot:nth-of-type(2) {
+          grid-area: nine;
+        }
+        [data-side="3"] .dot:nth-of-type(1) {
+          grid-area: one;
+        }
+        [data-side="3"] .dot:nth-of-type(2) {
+          grid-area: five;
+        }
+        [data-side="3"] .dot:nth-of-type(3) {
+          grid-area: nine;
+        }
+        [data-side="4"] .dot:nth-of-type(1) {
+          grid-area: one;
+        }
+        [data-side="4"] .dot:nth-of-type(2) {
+          grid-area: three;
+        }
+        [data-side="4"] .dot:nth-of-type(3) {
+          grid-area: seven;
+        }
+        [data-side="4"] .dot:nth-of-type(4) {
+          grid-area: nine;
+        }
+        [data-side="5"] .dot:nth-of-type(1) {
+          grid-area: one;
+        }
+        [data-side="5"] .dot:nth-of-type(2) {
+          grid-area: three;
+        }
+        [data-side="5"] .dot:nth-of-type(3) {
+          grid-area: five;
+        }
+        [data-side="5"] .dot:nth-of-type(4) {
+          grid-area: seven;
+        }
+        [data-side="5"] .dot:nth-of-type(5) {
+          grid-area: nine;
+        }
+        [data-side="6"] .dot:nth-of-type(1) {
+          grid-area: one;
+        }
+        [data-side="6"] .dot:nth-of-type(2) {
+          grid-area: three;
+        }
+        [data-side="6"] .dot:nth-of-type(3) {
+          grid-area: four;
+        }
+        [data-side="6"] .dot:nth-of-type(4) {
+          grid-area: six;
+        }
+        [data-side="6"] .dot:nth-of-type(5) {
+          grid-area: seven;
+        }
+        [data-side="6"] .dot:nth-of-type(6) {
+          grid-area: nine;
+        }
+
+        button {
+          align-self: center;
+          background-color: #efefef;
+          border: none;
+          color: #333;
+          font-size: 1.25rem;
+          font-weight: 700;
+          justify-self: center;
+          padding: 0.5rem 1rem;
+        }
+        button:hover {
+          cursor: pointer;
+        }
+
+        @media (min-width: 900px) {
+          .dice {
+            perspective: 1300px;
+          }
+        }
+    </style>
+
+    <script>
+        function cancel() {
+           let d = document.getElementById("die_pop_content");
+           d.style.display="none";
+        }
+        function rollDice() {
+          const dice = [...document.querySelectorAll(".die-list")];
+          dice.forEach(die => {
+            toggleClasses(die);
+            die.dataset.roll = getRandomNumber(1, 6);
+          });
+        }
+        function toggleClasses(die) {
+          die.classList.toggle("odd-roll");
+          die.classList.toggle("even-roll");
+        }
+
+        function getRandomNumber(min, max) {
+          min = Math.ceil(min);
+          max = Math.floor(max);
+          return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        document.getElementById("roll-button").addEventListener("click", rollDice);
+        document.getElementById("cancel").addEventListener("click", cancel);
+    </script>
+    <!-- <script src="./app.js"></script> -->
+
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+    <script>
+        var graph;
+        var regions = {};
+        var selectedRegion = null;
+        var neighborRegions = [];
+        var troopMarkers = {};
+        var playerList, currentPlayer;
+        // var playerList = room.users;
+        // var currentPlayer = playerList[0];
+        var phase = 'reinforcement';
+
+        var style = {
+            fill: "#ddd",
+            stroke: "#f0d384",
+            "stroke-width": 2,
+            "stroke-linejoin": "round",
+            cursor: "pointer"
+        };
+        var hoverStyle = {
+            fill: "#ffabab"
+        };
+        var neighborHoverStyle = {
+            fill: "#824b4b"
+        };
+        var selectedStyle = {
+            fill: "#9c1616"
+        };
+
+        var playerStyles = [];
+        playerStyles.push({
+           fill: "#bf4b4b"
+        });
+        playerStyles.push({
+            fill: "#117321"
+        });
+        playerStyles.push({
+            fill: "#1f4991"
+        });
+        playerStyles.push({
+            fill: "#929431"
+        });
+
+        window.addEventListener('load', function() {
+            let container = document.getElementById('map');
+            map = new Raphael(container, 620, 600);
+
+            socket = io('/game');
+
+            socket.on('player list', function(data) {
+                console.log('got player list');
+                playerList = data.playerList;
+                currentPlayer = playerList[0];
+                console.log(playerList);
+            });
+
+            socket.on('map', function(g) {
+
+                graph = g;
+
+                let playerIndex;
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    regions[graph.nodes[i].obj.name] = map.path(graph.nodes[i].obj.path);
+                    restoreStyle(graph.nodes[i]);
+                    let bBox = regions[graph.nodes[i].obj.name].getBBox();
+
+                    // draw circle with number of troops
+                    let centerX = bBox.x + bBox.width / 2;
+                    let centerY = bBox.y + bBox.height / 2;
+                    map.circle(centerX, centerY, 10).attr({fill: "#e6e6e6"});
+                    troopMarkers[graph.nodes[i].obj.name] = map.text(centerX, centerY, graph.nodes[i].obj.troops);
+
+                    regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
+
+                        // ? what if two regions have the same name
+                        if(graph.nodes[i].obj.name !== selectedRegion) {
+                            regions[graph.nodes[i].obj.name].animate(hoverStyle, 0);
+                        }
+                    }, true);
+                    regions[graph.nodes[i].obj.name][0].addEventListener('click', function() {
+
+                        // clear all styles
+                        for(let j = 0; j < graph.nodes.length; j++) {
+                            restoreStyle(graph.nodes[j]);
+                            // regions[graph.nodes[j].obj.name].animate(style, 0);
+                        }
+
+                        
+
+                        // TODO show a popup to select the number of troops to move
+                        if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                            // a region was selected and the user then clicked on a neighboring region
+
+                            //Craps animation
+                            let d = document.getElementById("die_pop_content");
+                            d.style.display="block";
+
+                            let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
+                            console.log(payload);
+                            socket.emit('attack', payload);
+
+                            selectedRegion = null;
+                            neighborRegions = [];
+                        } else {
+                            if(graph.nodes[i].obj.name !== selectedRegion) {
+                                for(let j = 0; j < graph.nodes.length; j++) {
+                                    if(graph.adjacencyMatrix[i][j]) {
+                                        neighborRegions.push(graph.nodes[j].obj.name);
+                                        regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                                    }
+                                }
+
+                                regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                                selectedRegion = graph.nodes[i].obj.name;
+                            } else {
+                                selectedRegion = null;
+                                neighborRegions = [];
+                            }
+                        }
+                    }, true);
+
+                    regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
+
+                        if(graph.nodes[i].obj.name === selectedRegion) {
+                            regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                        } else if(neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                            regions[graph.nodes[i].obj.name].animate(neighborHoverStyle, 0);
+                        } else {
+                            restoreStyle(graph.nodes[i]);
+                            // regions[graph.nodes[i].obj.name].animate(style, 0);
+                        }
+                    }, true);
+                }
+            });
+
+            socket.on('attack', function(data) {
+                console.log('Got attack event');
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    if(graph.nodes[i].obj.name === data.from) {
+                        console.log('Updating marker');
+                        graph.nodes[i].obj.troops -= data.attackingDeaths;
+                        troopMarkers[data.from].attr({text: graph.nodes[i].obj.troops})
+                    }
+                    if(graph.nodes[i].obj.name === data.to) {
+                        console.log('Updating marker');
+                        graph.nodes[i].obj.troops -= data.defendingDeaths;
+                        troopMarkers[data.to].attr({text: graph.nodes[i].obj.troops});
+                    }
+                }
+
+                if(data.conquered) {
+                    // TODO
+                }
+
+                if(data.defeated) {
+                    // TODO
+                }
+            });
+
+            socket.on('reinforce', function(data) {
+                console.log('got reinforce event');
+                for(let i = 0; i < graph.nodes.length; i++) {
+                    if(graph.nodes[i].obj.name === data.region) {
+                        graph.nodes[i].obj.troops += data.num;
+                        troopMarkers[data.region].attr({text: graph.nodes[i].obj.troops});
+                        break;
+                    }
+                }
+            });
+
+            document.getElementById('reinbtn').addEventListener('click', function(e) {
+                e.preventDefault();
+
+                socket.emit('reinforce', {
+                    region: 'picardie',
+                    num: 2
+                });
+            });
+        });
+
+        function restoreStyle(node) {
+            let playerIndex = playerList.indexOf(node.obj.owner);
+            regions[node.obj.name].attr(style);
+            regions[node.obj.name].attr(playerStyles[playerIndex]);
+        }
+    </script>
+</body>
+</html>
