@@ -478,6 +478,10 @@ app.get('/privacy', function(req, res) {
     res.render('privacy', {});
 })
 
+app.get('/about', function(req, res) {
+    res.render('about', {});
+})
+
 app.get('/rooms', function(req, res) {
     if(!users.search(req.sessionID)) {
         return res.redirect('/');
