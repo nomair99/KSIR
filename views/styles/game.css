@@ -4,7 +4,7 @@
 
 html, body {
     padding: 0;
-    background-color:#f0d384;
+    background-color:#EEF0E6;
 }
 
 svg {
@@ -18,7 +18,7 @@ svg {
     left: 0;
     display: flex;
     justify-content: space-between;
-    background-color: black;
+    background-color: #353633;
     color: white;
     font-family: Arial, Helvetica, sans-serif;
     font-weight: bold;
@@ -37,7 +37,7 @@ svg {
 #end-phase {
     width: 100px;
     background-color: whitesmoke;
-    color: black;
+    color: #353633;
 }
 
 #reinforcements-remaining {
@@ -45,8 +45,8 @@ svg {
 }
 
 #end-phase:hover {
-    background-color: red;
-    color: whitesmoke;
+    background-color: #FE0032;
+    color: white;
 }
 #popupposition {
     top: 0; 
@@ -93,7 +93,7 @@ svg {
     align-self: center;
     background-color: #efefef;
     border: none;
-    color: #333;
+    color: #353633;
     font-size: 1.25rem;
     font-weight: 700;
     justify-self: center;
@@ -304,24 +304,24 @@ html {
     grid-area: nine;
   }
 
-  button {
-    align-self: center;
-    background-color: #efefef;
-    border: none;
-    color: #333;
-    font-size: 1.25rem;
-    font-weight: 700;
-    justify-self: center;
-    padding: 0.5rem 1rem;
-  }
-  button:hover {
-    cursor: pointer;
-    background-color: #bbbbbb;
-  }
+/* button {
+  align-self: center;
+  background-color: #efefef;
+  border: none;
+  color: #333;
+  font-size: 1.25rem;
+  font-weight: 700;
+  justify-self: center;
+  padding: 0.5rem 1rem;
+}
+button:hover {
+  cursor: pointer;
+  background-color: #bbbbbb;
+} */
 
-  @media (min-width: 900px) {
-    .dice {
-      perspective: 1300px;
-    }
+@media (min-width: 900px) {
+  .dice {
+    perspective: 1300px;
   }
+}
 
