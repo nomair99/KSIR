@@ -168,10 +168,8 @@
 <div  id="popupposition">
     <div class = "popupwrapper">
         <div class = "popupcontent">
-            <h3>Please select the number of troops</h3>
-            <div class = "popupbuttons">
-
-            </div>
+            <h2>How Many Troops?</h2>
+            <div class = "popupbuttons"></div>
             <button class="cancel">Cancel</button>
         </div>
     </div>
@@ -300,30 +298,16 @@
                         // clear all styles
                         restoreAllStyles();
                         
-
                         // TODO show a popup to select the number of troops to move
-                        
-                        
-                        if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
-                            // a region was selected and the user then clicked on a neighboring region
-                            selectroops(graph.nodes[i].obj.troops);
+                        if(phase === 'reinforcement' && graph.nodes[i].obj.owner === thisPlayer) {
+                            if(reinforcementsRemaining > 0) {
+                                regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                                selectroops(i, null, true);
+                            }
 
                             //Craps animation
-                            let d = document.getElementById("die_pop_content");
-                            d.style.display="block";
-
-                        if(phase === 'reinforcement') {
-                            // TODO show popup
-                            // don't show if reinforcementsRemaining <= 0
-                            let num = 2;
-
-                            selectedRegion = graph.nodes[i].obj.name;
-                            regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
-                            socket.emit('reinforce', {
-                                region: graph.nodes[i].obj.name,
-                                num: num
-                            });
-
+                            // let d = document.getElementById("die_pop_content");
+                            // d.style.display="block";
                         } else if(phase === 'attack') {
                             // TODO show a popup to select the number of troops to move
                             if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
@@ -352,8 +336,6 @@
                                 }
                             }
                         }
-                        }
-
                     }, true);
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseout', function() {
@@ -480,25 +462,60 @@
                 switchPlayer();
             }
         }
-        function selectroops(n) {
-            var popup = document.querySelector(".popupbuttons");
-            var cancel = document.querySelector(".cancel")
+
+        function selectroops(indexFrom, indexTo, isReinforcementPhase) {
+            let popup = document.querySelector(".popupbuttons");
+            let cancel = document.querySelector(".cancel")
             toggle_visibility("popupposition");
 
-            for (var i=0; i<n-1; i++) {
-                              
-                var elem = document.createElement('input');
-                elem.type = 'button';
-                elem.value = i + 1;
-                elem.className = "pickerbutton";
-                elem.onclick = function() {returntroops(this.value)};
-                
-                popup.appendChild(elem);
+            function closePopup() {
+                toggle_visibility("popupposition");
+                while(popup.firstChild) {
+                    popup.removeChild(popup.firstChild);
+                }
+                restoreAllStyles();
+                selectedRegion = null;
+                neighborRegions = [];
+            };
+
+            if(isReinforcementPhase) {
+                let n = reinforcementsRemaining;
+                for (let i = 0; i < n; i++) {
+                    let elem = document.createElement('input');
+                    elem.type = 'button';
+                    elem.value = i + 1;
+                    elem.className = "pickerbutton";
+                    elem.addEventListener('click', function(e) {
+                        console.log('clicked ')
+                        e.stopPropagation();
+                        selectedRegion = graph.nodes[indexFrom].obj.name;
+                        socket.emit('reinforce', {
+                            region: graph.nodes[indexFrom].obj.name,
+                            num: i+1
+                        });
+
+                        closePopup();
+                    });
+                    
+                    popup.appendChild(elem);
+                }
+            } else {
+                let n = graph.nodes[indexFrom].obj.troops - 1;
+                for (let i = 0; i < n; i++) {
+                    let elem = document.createElement('input');
+                    elem.type = 'button';
+                    elem.value = i + 1;
+                    elem.className = "pickerbutton";
+                    elem.onclick = function() {returntroops(this.value)};
+                    
+                    popup.appendChild(elem);
+                }
             }
 
-            cancel.onclick = function() {returntroops(0)};
-
-
+            cancel.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closePopup();
+            });
         }
 
         
@@ -520,14 +537,14 @@
 
         }
 
-
         function toggle_visibility(id) {
-			       var n = document.getElementById(id);
-			       if(n.style.display == 'block')
-			          n.style.display = 'none';
-			       else
-			          n.style.display = 'block';
-			    }
+            var n = document.getElementById(id);
+            if(n.style.display == 'block') {
+                n.style.display = 'none';
+            } else {
+                n.style.display = 'block';
+            }
+        }
     </script>
 </body>
 </html>

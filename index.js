@@ -3,12 +3,11 @@ var app = express();
 app.use(express.json());
 var path = require("path");
 var http = require('http').createServer(app);
-var mode = require("./config.json").mode;
 
 var dotenv = require('dotenv');
 dotenv.config();
 
-var baseUrl = mode === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
+var baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
 
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
@@ -471,6 +470,9 @@ app.use(sessionMiddleware);
 app.use(express.urlencoded({extended: true}));
 
 app.get('/', function(req, res) {
+    if(users.search(req.sessionID)) {
+        res.redirect('/rooms');
+    }
     res.render('index', {error_user: req.session.error_user});
 });
 
@@ -484,6 +486,7 @@ app.get('/about', function(req, res) {
 
 app.get('/rooms', function(req, res) {
     if(!users.search(req.sessionID)) {
+        console.log(`/rooms: User not found. SessionID: ${req.sessionID} Redirecting back to homepage.`)
         return res.redirect('/');
     }
 
@@ -632,17 +635,18 @@ app.post('/login', function(req, res) {
         return res.sendStatus(401);
     }
 
-    if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length < 2 || req.body.username.length > 15){
+    if(!(/^[a-zA-Z0-9]+$/.test(req.body.username)) || req.body.username.length < 2 || req.body.username.length > 15) {
         console.log('bad username');
         res.redirect('/');
         return;
     }
     
     if(!users.search(req.sessionID)) {
+        console.log(`/login: Created new user. SessionID: ${req.sessionID}.`);
         users.insert({
             sessionID: req.sessionID,
             username: req.body.username
-        })
+        });
     }
 
     console.log('logging in');

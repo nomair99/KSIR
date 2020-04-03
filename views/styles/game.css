@@ -59,13 +59,33 @@ svg {
 }
 
 .popupwrapper {
-    width: 250px;
-     margin: 50px auto; 
-     text-align: left;
+  width: 25vw;
+  margin: 50px auto; 
+  text-align: left;
 }
+
+.popupwrapper h2 {
+  font-size: 1em;
+}
+
 .popupcontent {
-    background-color: #FFF; 
-    padding: 15px;
+  background-color: #FFF; 
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.popupbuttons {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.cancel {
+  margin-top: 10px;
 }
 
 .pickerbutton {
