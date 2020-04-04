@@ -201,7 +201,6 @@
         document.getElementById("roll-button").addEventListener("click", rollDice);
         document.getElementById("cancel").addEventListener("click", cancel);
     </script>
-    <!-- <script src="./app.js"></script> -->
 
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
@@ -215,6 +214,7 @@
         var reinforcementsRemaining = 0;
         var playerList, currentPlayer, thisPlayer;
         var phase = 'reinforcement';
+        var movedThisTurn = false;
 
         var style = {
             fill: "#ddd",
@@ -397,12 +397,39 @@
 
                 reinforcementsRemaining -= data.num;
                 updateReinforcementsRemaining();
+
+                if(canEndPhase()) {
+                    // TODO disable button
+                } else {
+                }
             });
 
             socket.on('reinforcements remaining', function(num) {
                 reinforcementsRemaining = num;
                 updateReinforcementsRemaining();
             });
+
+            // ? should the 'attack move' phase be included here
+            socket.on('end phase', function(data) {
+                if(phase === 'reinforcement') {
+                    phase = 'attack';
+                } else if(phase === 'attack') {
+                    phase === 'move';
+                } else if(phase === 'move') {
+                    phase = 'reinforcement';
+                    switchPlayer();
+                }
+            });
+        });
+
+        var endPhaseBtn = document.querySelector('#end-phase');
+
+        endPhaseBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+
+            if(canEndPhase()) {
+                socket.emit('end phase', null);
+            }
         });
 
         document.addEventListener('click', function(e) {
@@ -517,28 +544,19 @@
             });
         }
 
-        
-        function returntroops(n) {
-            console.log(n);
-            
-            var elem = document.querySelectorAll(".pickerbutton");
-            var l = elem.length;
-            for (i=0; i<l; i++) {
-                    elem[i].parentNode.removeChild(elem[i]);
-
+        function canEndPhase() {
+            if(phase === 'reinforcement') {
+                return reinforcementsRemaining <= 0;
+            } else if(phase === 'attack' || phase === 'move') {
+                return true;
             }
-            
-            toggle_visibility("popupposition");
 
-          
-            return n;
-
-
+            return false;
         }
 
         function toggle_visibility(id) {
-            var n = document.getElementById(id);
-            if(n.style.display == 'block') {
+            let n = document.getElementById(id);
+            if(n.style.display === 'block') {
                 n.style.display = 'none';
             } else {
                 n.style.display = 'block';
