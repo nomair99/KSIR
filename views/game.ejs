@@ -16,6 +16,10 @@
         <div id="end-phase">End Phase</div>
     </div>
 
+    <div id="notification">
+        <p></p>
+    </div>
+
     <div id="die_pop_content">
     <div class="top">
         <a href="javascript:void(0)" id="cancel">&#935;</a>
@@ -352,6 +356,8 @@
 
             socket.on('attack', function(data) {
                 console.log('Got attack event');
+
+                let notificationText = `${currentPlayer} attacked ${data.to} from ${data.from} with ${data.num} troops!`;
                 let indexFrom, indexTo;
                 for(let i = 0; i < graph.nodes.length; i++) {
                     if(graph.nodes[i].obj.name === data.from) {
@@ -370,18 +376,22 @@
                 }
 
                 if(data.defeated) {
+                    let defeatedPlayer;
                     for(let j = 0; j < playerList.length; j++) {
                         if(playerList[j].player === graph.nodes[indexTo].obj.owner) {
                             playerList[j].alive = false;
+                            defeatedPlayer = playerList[j].player;
                             break;
                         }
                     }
 
-                    // TODO show animation ?
+                    notificationText += `<br>${defeatedPlayer} was defeated!`;
+                    // ? show animation
                 }
-
+                
                 if(data.conquered) {
                     graph.nodes[indexTo].obj.owner = graph.nodes[indexFrom].obj.owner;
+                    notificationText += `<br>${data.to} was conquered!`;
                 }
             });
 
@@ -398,6 +408,8 @@
                 reinforcementsRemaining -= data.num;
                 updateReinforcementsRemaining();
 
+                showNotification(`${currentPlayer} reinforced ${data.region} with ${data.num} troops!`);
+
                 if(canEndPhase()) {
                     // TODO disable button
                 } else {
@@ -413,11 +425,14 @@
             socket.on('end phase', function(data) {
                 if(phase === 'reinforcement') {
                     phase = 'attack';
+                    showNotification(`${currentPlayer} moved onto the attack phase!`);
                 } else if(phase === 'attack') {
                     phase === 'move';
+                    showNotification(`${currentPlayer} moved onto the movement phase!`);
                 } else if(phase === 'move') {
                     phase = 'reinforcement';
                     switchPlayer();
+                    showNotification(`It's ${currentPlayer}'s' turn!`);
                 }
             });
         });
@@ -542,6 +557,35 @@
                 e.stopPropagation();
                 closePopup();
             });
+        }
+
+        function showNotification(text) {
+            let notificationBox = document.querySelector('#notification');
+            let notificationText = document.querySelector('#notification p');
+
+            // remove existing text
+            while(notificationText.firstChild) {
+                notificationText.removeChild(notificationText.firstChild);
+            }
+
+            notificationText.appendChild(document.createTextNode(text));
+
+            // ? does this line work if the class isn't already applied
+            notificationBox.classList.remove('popnotification');
+            notificationBox.classList.add('popnotification');
+            setInterval(function() {
+                notificationBox.classList.remove('popnotification');
+            }, 4000);
+            // // notificationBox.style['display'] = 'block';
+            // notificationBox.style['opacity'] = '1.0';
+
+            // // close notification after 6 seconds (including initial transition time)
+            // setInterval(function() {
+            //     notificationBox.style['opacity'] = '0.0';
+            // }, 6000); 
+            // setInterval(function() {
+            //     notificationBox.style['display'] = 'none';
+            // }, 12000);
         }
 
         function canEndPhase() {

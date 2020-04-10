@@ -8,7 +8,7 @@
   height: 120px;
   background: #ffffff;
   padding: 0 10px;
-  color: #ff0000;
+  color: #FE0032;
   position: fixed;
   z-index: 10;
   width: 100%;
@@ -32,7 +32,8 @@
   text-transform: uppercase;
   text-decoration: none;
   padding: 0 20px;
-  font-family: Yu Gothic UI Semibold;
+  /* font-family: Yu Gothic UI Semibold; */
+  font-family: Arial, Helvetica, sans-serif;
   font-size: 20px;
 }
 
@@ -54,9 +55,9 @@
 
 .menu a:hover{
   color: #fff;
-  background-color: #ff0000;
-  border-top: 50px solid #ff0000;
-  border-bottom: 52px solid #ff0000;
+  background-color: #FE0032;
+  border-top: 50px solid #FE0032;
+  border-bottom: 52px solid #FE0032;
 }
 
 .show-menu-btn:hover,
