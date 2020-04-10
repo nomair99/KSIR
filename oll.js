@@ -4,15 +4,17 @@ var OrderedLinkedListNode = function(obj, next=null) {
     this.next = next;
 }
 
-var OrderedLinkedList = function(eqFunc, gtFunc) {
+var OrderedLinkedList = function(eqFuncObj, eqFunc, gtFuncObj, gtFunc) {
     /* An ordered, singly linked list. */
 
     // ? can we have a race condition in list operations, as
     // ? multiple users might modify the list at once 
 
     this.head = null;
+    this.eqFuncObj = eqFuncObj;
     this.eqFunc = eqFunc;
     this.gtFunc = gtFunc;
+    this.gtFuncObj = gtFuncObj;
     // eqFunc and gtFunc return true if the first object passed to them
     // is equal or greater than the second, respectively. They are used
     // to generalize the list for any type of object.
@@ -27,7 +29,7 @@ var OrderedLinkedList = function(eqFunc, gtFunc) {
         // stores the node before [walk]
 
         while(walk) {
-            if(!this.gtFunc(obj, walk.obj)) {
+            if(!this.gtFuncObj(obj, walk.obj)) {
                 break;
             }
             walkPrev = walk;
@@ -44,9 +46,9 @@ var OrderedLinkedList = function(eqFunc, gtFunc) {
         newNode.next = walk;
     };
 
-    this.search = function(obj) {
+    this.search = function(key) {
         /* 
-        Searches for [obj] in the list, using [eqFunc].
+        Searches for [key] in the list, using [eqFunc].
         Returns the found object, or returns null if it wasn't found.
         */
 
@@ -54,9 +56,9 @@ var OrderedLinkedList = function(eqFunc, gtFunc) {
         
         let walk = this.head;
         while(walk) {
-            if(this.eqFunc(obj, walk.obj)) {
+            if(this.eqFunc(key, walk.obj)) {
                 return walk;
-            } else if(this.gtFunc(obj, walk.obj)) {
+            } else if(this.gtFunc(key, walk.obj)) {
                 walk = walk.next;
             } else {
 
@@ -69,13 +71,13 @@ var OrderedLinkedList = function(eqFunc, gtFunc) {
         return null;
     };
 
-    this.delete = function(obj) {
+    this.delete = function(key) {
         /*
-        Removes the node which contains [obj] from the list and returns it.
+        Removes the node which matches [key] from the list and returns it.
         Returns null if no such node was found.
         */
 
-        let nodeToDelete = this.search(obj);
+        let nodeToDelete = this.search(key);
         if(nodeToDelete) {
             let walk = this.head;
             let walkPrev = null;

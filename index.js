@@ -27,8 +27,8 @@ var GameState = require('./game-state.js').GameState;
 
 var oll = require('./oll.js');
 
-var users = new oll.OrderedLinkedList((sessionID, user) => {return sessionID === user.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
-var rooms = new oll.OrderedLinkedList((id, room) => {return id === room.id;}, (id, room) => {return id > room.id;});
+var users = new oll.OrderedLinkedList((obj1, obj2) => {return obj1.sessionID === obj2.sessionID;}, (sessionID, user) => {return sessionID === user.sessionID;}, (obj1, obj2) => {return obj1.sessionID > obj2.sessionID;}, (sessionID, user) => {return sessionID > user.sessionID;});
+var rooms = new oll.OrderedLinkedList((obj1, obj2) => {return obj1.id === obj2.id;}, (id, room) => {return id === room.id;}, (obj1, obj2) => {return obj1.id > obj2.id;}, (id, room) => {return id > room.id;});
 var roomIdCounter = 0;
 
 var getMap = require('./map.js').getMap;
@@ -308,6 +308,7 @@ gameServer.on('connection', function(socket) {
         gameRoom.emit('attack', {
             from: data.from,
             to: data.to,
+            num: data.num,
             attackingDeaths: attackingDeaths,
             defendingDeaths: defendingDeaths,
             conquered: conquered,
