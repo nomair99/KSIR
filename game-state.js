@@ -13,6 +13,9 @@ var GameState = function(map, playerList) {
 
     this.reinforcementsRemaining = 0;
 
+    this.attackMoveRegionIndexFrom = null;
+    this.attackMoveRegionIndexTo = null;
+
     this.currentPlayerIndex = 0;
     this.currentPlayer = this.playerList[this.currentPlayerIndex].player;
     this.phase = 'reinforcement';

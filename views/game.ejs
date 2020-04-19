@@ -10,14 +10,27 @@
 
 </head>
 <body>
+    <div class="header">
+        <img src="/styles/ksir.png" alt="ksir" width=220px height=100%>
+        <input type="checkbox" id="chk">
+        <label for="chk" class="show-menu-btn">
+          <i class="fas fa-ellipsis-h"></i>
+        </label>
+    
+        <ul class="menu">
+          <a href="/">Home</a>
+          <a href="/about">About</a>
+          <a href="/privacy">Privacy</a>
+          <!-- <a href="#">Contact</a> -->
+          <label for="chk" class="hide-menu-btn">
+            <i class="fas fa-times"></i>
+          </label>
+        </ul>
+    </div>
     <div id="map"></div>
     <div id="game-panel">
-        <div id="reinforcements-remaining"></div>
-        <div id="end-phase">End Phase</div>
-    </div>
-
-    <div id="notification">
-        <p></p>
+        <div id="phase-indicator"></div>
+        <div class="end-phase">End Phase</div>
     </div>
 
     <div id="die_pop_content">
@@ -212,13 +225,17 @@
         var graph;
         var regions = {};
         var selectedRegion = null;
+        var selectedRegionIndex = null;
         var neighborRegions = [];
         var troopMarkers = {};
+        var regionCircles = {};
         var currentPlayerIndex = 0;
         var reinforcementsRemaining = 0;
         var playerList, currentPlayer, thisPlayer;
         var phase = 'reinforcement';
         var movedThisTurn = false;
+        var attackMoveRegionIndexFrom = null;
+        var attackMoveRegionIndexTo = null;
 
         var style = {
             fill: "#ddd",
@@ -235,6 +252,14 @@
         };
         var selectedStyle = {
             fill: "#9c1616"
+        };
+
+        var regionCircleStyle = {
+            fill: "#353633"
+        };
+        
+        var regionCircleHighlightedStyle = {
+            fill: "#FE0032"
         };
 
         var playerStyles = [];
@@ -281,8 +306,8 @@
                     // draw circle with number of troops
                     let centerX = bBox.x + bBox.width / 2;
                     let centerY = bBox.y + bBox.height / 2;
-                    map.circle(centerX, centerY, 10).attr({fill: "#e6e6e6"});
-                    troopMarkers[graph.nodes[i].obj.name] = map.text(centerX, centerY, graph.nodes[i].obj.troops);
+                    regionCircles[graph.nodes[i].obj.name] = map.circle(centerX, centerY, 10).attr(regionCircleStyle);
+                    troopMarkers[graph.nodes[i].obj.name] = map.text(centerX, centerY, graph.nodes[i].obj.troops).attr({fill: "white"});
 
                     regions[graph.nodes[i].obj.name][0].addEventListener('mouseover', function() {
 
@@ -305,37 +330,59 @@
                         if(phase === 'reinforcement' && graph.nodes[i].obj.owner === thisPlayer) {
                             if(reinforcementsRemaining > 0) {
                                 regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
-                                selectroops(i, null, true);
+                                selectroops(i, null);
                             }
 
                             //Craps animation
                             // let d = document.getElementById("die_pop_content");
                             // d.style.display="block";
                         } else if(phase === 'attack') {
-                            // TODO show a popup to select the number of troops to move
-                            if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
-                                // a region was selected and the user then clicked on a neighboring region
+
+                            if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1 && graph.nodes[i].obj.owner !== thisPlayer) {
+                                // a region was selected and the user then clicked on a neighboring region that belonged to an opponent
     
-                                let payload = {from: selectedRegion, to: graph.nodes[i].obj.name, num: 1};
-                                console.log(payload);
-                                socket.emit('attack', payload);
-    
+                                if(graph.nodes[selectedRegionIndex].obj.troops > 1) {
+                                    selectroops(selectedRegionIndex, i);
+                                } else {
+                                    showNotification(`${selectedRegion} has only one troop!`);
+                                }
+
                                 selectedRegion = null;
+                                selectedRegionIndex = null;
                                 neighborRegions = [];
                             } else {
-                                if(graph.nodes[i].obj.name !== selectedRegion) {
+                                if(graph.nodes[i].obj.name !== selectedRegion && graph.nodes[i].obj.owner === thisPlayer) {
                                     for(let j = 0; j < graph.nodes.length; j++) {
-                                        if(graph.adjacencyMatrix[i][j]) {
+                                        if(graph.adjacencyMatrix[i][j] && graph.nodes[j].obj.owner !== thisPlayer) {
                                             neighborRegions.push(graph.nodes[j].obj.name);
-                                            regions[graph.nodes[j].obj.name].animate(neighborHoverStyle, 0);
+                                            regions[graph.nodes[j].obj.name].attr(neighborHoverStyle);
                                         }
                                     }
-    
-                                    regions[graph.nodes[i].obj.name].animate(selectedStyle, 0);
+                                    
+                                    regions[graph.nodes[i].obj.name].attr(selectedStyle);
                                     selectedRegion = graph.nodes[i].obj.name;
+                                    selectedRegionIndex = i;
                                 } else {
                                     selectedRegion = null;
+                                    selectedRegionIndex = null;
                                     neighborRegions = [];
+                                }
+                            }
+                        } else if(phase === 'move' && !movedThisTurn) {
+                            if(selectedRegion && neighborRegions.indexOf(graph.nodes[i].obj.name) !== -1) {
+                                selectroops(selectedRegionIndex, i);
+                            } else {
+                                restoreAllStyles();
+                                selectedRegionIndex = i;
+                                selectedRegion = graph.nodes[i].obj.name;
+                                regions[selectedRegion].attr(selectedStyle);
+                                for(let j = 0; j < graph.nodes.length; j++) {
+
+                                    // ! placeholder. only allows moving to adjacents. implement routeExists and replace
+                                    if(i !== j && graph.nodes[j].obj.owner === thisPlayer && graph.adjacencyMatrix[i][j]) {
+                                            neighborRegions.push(graph.nodes[j].obj.name);
+                                            regions[graph.nodes[j].obj.name].attr(neighborHoverStyle);
+                                    }
                                 }
                             }
                         }
@@ -375,6 +422,13 @@
                     }
                 }
 
+                regionCircles[data.from].attr(regionCircleHighlightedStyle);
+                regionCircles[data.to].attr(regionCircleHighlightedStyle);
+                setInterval(function() {
+                    regionCircles[data.from].attr(regionCircleStyle);
+                    regionCircles[data.to].attr(regionCircleStyle);
+                }, 1500);
+
                 if(data.defeated) {
                     let defeatedPlayer;
                     for(let j = 0; j < playerList.length; j++) {
@@ -385,14 +439,61 @@
                         }
                     }
 
-                    notificationText += `<br>${defeatedPlayer} was defeated!`;
+                    notificationText += `${defeatedPlayer} was defeated!`;
                     // ? show animation
                 }
                 
                 if(data.conquered) {
                     graph.nodes[indexTo].obj.owner = graph.nodes[indexFrom].obj.owner;
-                    notificationText += `<br>${data.to} was conquered!`;
+                    notificationText += `${data.to} was conquered!`;
+                    // TODO switch to attack move phase
+
+                    if(graph.nodes[indexFrom].obj.troops > 1) {
+                        // allow player to move additional troops
+
+                        phase = "attack move";
+                        attackMoveRegionIndexFrom = indexFrom;
+                        attackMoveRegionIndexTo = indexTo;
+                        showNotification(`${currentPlayer} is moving troops into ${data.to}!`);
+                        
+                        if(thisPlayer === currentPlayer) {
+                            selectroops(indexFrom, indexTo);
+                        }
+                    }
                 }
+
+                restoreAllStyles();
+                showNotification(notificationText);
+            });
+
+            socket.on('attack move', function(data) {
+                console.log('got attack move event');
+                graph.nodes[attackMoveRegionIndexFrom].obj.troops -= data.num;
+                graph.nodes[attackMoveRegionIndexTo].obj.troops += data.num;
+
+                troopMarkers[graph.nodes[attackMoveRegionIndexFrom].obj.name].attr({text: graph.nodes[attackMoveRegionIndexFrom].obj.troops});
+                troopMarkers[graph.nodes[attackMoveRegionIndexTo].obj.name].attr({text: graph.nodes[attackMoveRegionIndexTo].obj.troops});
+                
+                let troopForm = data.num === 1 ? 'troop' : 'troops';
+                showNotification(`${currentPlayer} moved ${data.num} additional ${troopForm} into ${graph.nodes[attackMoveRegionIndexTo].obj.name}!`);
+                phase = 'attack';
+            });
+
+            socket.on('move', function(data) {
+                let indexFrom, indexTo;
+
+                for(let j = 0; j < graph.nodes.length; j++) {
+                    if(graph.nodes[j].obj.name === data.from) {
+                        graph.nodes[j].obj.troops -= data.num;
+                        troopMarkers[graph.nodes[j].obj.name].attr({text: graph.nodes[j].obj.troops});
+                    } else if(graph.nodes[j].obj.name === data.to) {
+                        graph.nodes[j].obj.troops += data.num;
+                        troopMarkers[graph.nodes[j].obj.name].attr({text: graph.nodes[j].obj.troops});
+                    }
+                }
+
+                let troopsForm = data.num === 1 ? 'troop' : 'troops';
+                showNotification(`${currentPlayer} moved ${data.num} ${troopsForm} from ${data.from} to ${data.to}!`);
             });
 
             socket.on('reinforce', function(data) {
@@ -408,6 +509,10 @@
                 reinforcementsRemaining -= data.num;
                 updateReinforcementsRemaining();
 
+                if(thisPlayer === currentPlayer && reinforcementsRemaining <= 0) {
+                    document.querySelector('.end-phase').classList.add('can-click');
+                }
+
                 showNotification(`${currentPlayer} reinforced ${data.region} with ${data.num} troops!`);
 
                 if(canEndPhase()) {
@@ -418,26 +523,43 @@
 
             socket.on('reinforcements remaining', function(num) {
                 reinforcementsRemaining = num;
-                updateReinforcementsRemaining();
+                updateReinforcementsRemaining(); 
             });
-
+            
             // ? should the 'attack move' phase be included here
             socket.on('end phase', function(data) {
+                console.log('got end phase event');
+
                 if(phase === 'reinforcement') {
                     phase = 'attack';
+                    if(thisPlayer !== currentPlayer) {
+                        document.querySelector('.end-phase').classList.remove('can-click');
+                    } else {
+                        document.querySelector('.end-phase').classList.add('can-click');
+                    }
+                    updatePhaseIndicatorText(`${currentPlayer} Attacking`);
                     showNotification(`${currentPlayer} moved onto the attack phase!`);
                 } else if(phase === 'attack') {
-                    phase === 'move';
+                    updatePhaseIndicatorText(`${currentPlayer} Moving`);
+                    phase = 'move';
+                    if(thisPlayer !== currentPlayer) {
+                        document.querySelector('.end-phase').classList.remove('can-click');
+                    } else {
+                        document.querySelector('.end-phase').classList.add('can-click');
+                    }
+                    movedThisTurn = false;
                     showNotification(`${currentPlayer} moved onto the movement phase!`);
                 } else if(phase === 'move') {
                     phase = 'reinforcement';
+                    document.querySelector('.end-phase').classList.remove('can-click');
                     switchPlayer();
+                    
                     showNotification(`It's ${currentPlayer}'s' turn!`);
                 }
             });
         });
 
-        var endPhaseBtn = document.querySelector('#end-phase');
+        var endPhaseBtn = document.querySelector('.end-phase');
 
         endPhaseBtn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -472,17 +594,21 @@
             }
         }
 
+        function updatePhaseIndicatorText(text) {
+            let phaseIndicator = document.querySelector('#phase-indicator');
+    
+            // remove existing text
+            while(phaseIndicator.firstChild) {
+                phaseIndicator.removeChild(phaseIndicator.firstChild);
+            }
+    
+            // display new text
+            phaseIndicator.appendChild(document.createTextNode(text));
+        }
+
         function updateReinforcementsRemaining() {
             console.log(`updating reinforcements remaining: ${reinforcementsRemaining}`);
-            let reinforementsNumberBox = document.querySelector('#reinforcements-remaining');
-
-            // remove existing text
-            while(reinforementsNumberBox.firstChild) {
-                reinforementsNumberBox.removeChild(reinforementsNumberBox.firstChild);
-            }
-
-            // display the new number
-            reinforementsNumberBox.appendChild(document.createTextNode(`Reinforcements Remaining: ${reinforcementsRemaining}`));
+            updatePhaseIndicatorText(`${currentPlayer} Reinforcing. Troops Remaining: ${reinforcementsRemaining}`);
         }
 
         function switchPlayer() {
@@ -504,10 +630,13 @@
             }
         }
 
-        function selectroops(indexFrom, indexTo, isReinforcementPhase) {
+        function selectroops(indexFrom, indexTo) {
+            // TODO allow changing header text
             let popup = document.querySelector(".popupbuttons");
             let cancel = document.querySelector(".cancel")
             toggle_visibility("popupposition");
+
+            cancel.disabled = false;
 
             function closePopup() {
                 toggle_visibility("popupposition");
@@ -519,15 +648,15 @@
                 neighborRegions = [];
             };
 
-            if(isReinforcementPhase) {
+            if(phase === 'reinforcement') {
                 let n = reinforcementsRemaining;
-                for (let i = 0; i < n; i++) {
+                for(let i = 0; i < n; i++) {
                     let elem = document.createElement('input');
                     elem.type = 'button';
                     elem.value = i + 1;
                     elem.className = "pickerbutton";
                     elem.addEventListener('click', function(e) {
-                        console.log('clicked ')
+                        console.log('clicked');
                         e.stopPropagation();
                         selectedRegion = graph.nodes[indexFrom].obj.name;
                         socket.emit('reinforce', {
@@ -540,59 +669,107 @@
                     
                     popup.appendChild(elem);
                 }
-            } else {
-                let n = graph.nodes[indexFrom].obj.troops - 1;
-                for (let i = 0; i < n; i++) {
+            } else if(phase === 'attack') {
+                let n = Math.min(3, graph.nodes[indexFrom].obj.troops - 1);
+                for(let i = 0; i < n; i++) {
                     let elem = document.createElement('input');
                     elem.type = 'button';
                     elem.value = i + 1;
                     elem.className = "pickerbutton";
-                    elem.onclick = function() {returntroops(this.value)};
+                    elem.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        
+                        let regionFrom = graph.nodes[indexFrom].obj.name;
+                        let regionTo = graph.nodes[indexTo].obj.name;
+
+                        socket.emit('attack', {
+                            from: regionFrom,
+                            to: regionTo,
+                            num: i+1
+                        });
+
+                        closePopup();
+                    });
                     
                     popup.appendChild(elem);
                 }
+            } else if(phase === 'attack move') {
+                let n = graph.nodes[indexFrom].obj.troops - 1;
+                for(let i = 0; i <= n; i++) {
+                    let elem = document.createElement('input');
+                    elem.type = 'button';
+                    elem.value = i;
+                    elem.className = "pickerbutton";
+                    elem.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        
+                        socket.emit('attack move', {
+                            num: i
+                        });
+
+                        closePopup();
+                    });
+                    
+                    popup.appendChild(elem);
+                }
+                
+                // can't cancel 'attack move'
+                cancel.disabled = true;
+            } else if(phase === 'move') {
+                let n = graph.nodes[indexFrom].obj.troops - 1;
+                for(let i = 0; i <= n; i++) {
+                    let elem = document.createElement('input');
+                    elem.type = 'button';
+                    elem.value = i;
+                    elem.className = "pickerbutton";
+                    elem.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        
+                        socket.emit('move', {
+                            from: graph.nodes[indexFrom].obj.name,
+                            to: graph.nodes[indexTo].obj.name,
+                            num: i
+                        });
+                        movedThisTurn = true;
+
+                        closePopup();
+                    });
+                    
+                    popup.appendChild(elem);
+                }
+
             }
 
-            cancel.addEventListener('click', function(e) {
+            cancel.onclick = function(e) {
                 e.stopPropagation();
                 closePopup();
-            });
+            };
         }
 
         function showNotification(text) {
-            let notificationBox = document.querySelector('#notification');
-            let notificationText = document.querySelector('#notification p');
-
-            // remove existing text
-            while(notificationText.firstChild) {
-                notificationText.removeChild(notificationText.firstChild);
-            }
-
-            notificationText.appendChild(document.createTextNode(text));
-
-            // ? does this line work if the class isn't already applied
-            notificationBox.classList.remove('popnotification');
+            let bodyNode = document.querySelector('body');
+            let notificationBox = document.createElement('div');
+            notificationBox.classList.add('notification');
             notificationBox.classList.add('popnotification');
-            setInterval(function() {
-                notificationBox.classList.remove('popnotification');
-            }, 4000);
-            // // notificationBox.style['display'] = 'block';
-            // notificationBox.style['opacity'] = '1.0';
+            let notificationText = document.createElement('p');
+            notificationText.appendChild(document.createTextNode(text));
+            notificationBox.appendChild(notificationText);
+            bodyNode.appendChild(notificationBox);
 
-            // // close notification after 6 seconds (including initial transition time)
-            // setInterval(function() {
-            //     notificationBox.style['opacity'] = '0.0';
-            // }, 6000); 
-            // setInterval(function() {
-            //     notificationBox.style['display'] = 'none';
-            // }, 12000);
+            setInterval(function() {
+                bodyNode.removeChild(notificationBox);
+            }, 4000);
         }
 
         function canEndPhase() {
-            if(phase === 'reinforcement') {
-                return reinforcementsRemaining <= 0;
-            } else if(phase === 'attack' || phase === 'move') {
-                return true;
+            if(thisPlayer === currentPlayer) {
+                // only the current player can end phase
+
+                if(phase === 'reinforcement') {
+                    return reinforcementsRemaining <= 0;
+                } else if(phase === 'attack' || phase === 'move') {
+                    return true;
+                }
             }
 
             return false;
@@ -605,6 +782,10 @@
             } else {
                 n.style.display = 'block';
             }
+        }
+
+        function routeExists() {
+
         }
     </script>
 </body>

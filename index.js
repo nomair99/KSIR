@@ -291,19 +291,30 @@ gameServer.on('connection', function(socket) {
             // the region was conquered
 
             conquered = true;
-            let defendingPlayer = room.obj.gameState.map.nodes[indexTo].obj.owner;
 
+            // remove all surviving attacking troops from the attacking region and
+            // move them to the conquered region
+            defendingDeaths = defendingDeaths - (attackingTroops - attackingDeaths);
+            attackingDeaths = attackingTroops;
+
+            let defendingPlayer = room.obj.gameState.map.nodes[indexTo].obj.owner;
             room.obj.gameState.map.nodes[indexTo].obj.owner = user.obj.username;
-            room.obj.gameState.killTroops(indexTo, defendingDeaths - (attackingTroops - attackingDeaths));
 
             defeated = room.obj.gameState.isDefeated(defendingPlayer);
 
-            room.obj.gameState.phase = "attack move";
+            room.obj.gameState.killTroops(indexTo, defendingDeaths);
+            room.obj.gameState.killTroops(indexFrom, attackingDeaths);
+
+            if(room.obj.gameState.map.nodes[indexFrom].obj.troops > 1) {
+                room.obj.gameState.attackMoveRegionIndexFrom = indexFrom;
+                room.obj.gameState.attackMoveRegionIndexTo = indexTo;
+                room.obj.gameState.phase = "attack move";
+            }
         } else {
             room.obj.gameState.killTroops(indexTo, defendingDeaths);
+            room.obj.gameState.killTroops(indexFrom, attackingDeaths);
         }
-        
-        room.obj.gameState.killTroops(indexFrom, attackingDeaths);
+
 
         gameRoom.emit('attack', {
             from: data.from,
@@ -314,6 +325,33 @@ gameServer.on('connection', function(socket) {
             conquered: conquered,
             defeated: defeated
         });
+    });
+
+    socket.on('attack move', function(data) {
+        console.log('got attack move event');
+
+        if(room.obj.gameState.currentPlayer !== user.obj.username || room.obj.gameState.phase !== 'attack move') {
+            console.log('wrong phase');
+            socket.disconnect(true);
+            return;
+        }
+        
+        if(data.num === null) {
+            console.log('missing data');
+            socket.disconnect(true);
+            return;
+        }
+
+        if(!Number.isInteger(data.num) || data.num < 0 || data.num < 0 || data.num > room.obj.gameState.map.nodes[room.obj.gameState.attackMoveRegionIndexFrom].troops - 1) {
+            console.log('illegal number');
+            socket.disconnect(true);
+            return;
+        }
+
+        room.obj.gameState.moveTroops(room.obj.gameState.attackMoveRegionIndexFrom, room.obj.gameState.attackMoveRegionIndexTo, data.num);
+        room.obj.gameState.phase = 'attack';
+
+        gameRoom.emit('attack move', data);
     });
 
     socket.on('reinforce', function(data) {
@@ -374,7 +412,7 @@ gameServer.on('connection', function(socket) {
     socket.on('move', function(data) {
         console.log('got move event');
         
-        if(room.obj.gameState.currentPlayer !== user.obj.username || room.obj.GameState.phase !== 'move') {
+        if(room.obj.gameState.currentPlayer !== user.obj.username || room.obj.gameState.phase !== 'move') {
             console.log('wrong phase');
             socket.disconnect(true);
             return;
@@ -415,18 +453,20 @@ gameServer.on('connection', function(socket) {
             return;
         }
         
-        if(!Number.isInteger(data.num) || data.num <= 0 || data.num >= room.obj.gameState.nodes[indexFrom].obj.troops) {
+        if(!Number.isInteger(data.num) || data.num <= 0 || data.num >= room.obj.gameState.map.nodes[indexFrom].obj.troops) {
             console.log('illegal number');
             socket.disconnect(true);
             return;
         }
         
-        room.obj.gameState.moveTroops(indexFrom, indexTo, num);
+        room.obj.gameState.moveTroops(indexFrom, indexTo, data.num);
         
         gameRoom.emit('move', data);
     });
     
     socket.on('end phase', function(data) {
+        console.log('got end phase event');
+        
         if(room.obj.gameState.currentPlayer !== user.obj.username) {
             console.log('wrong player');
             socket.disconnect(true);
@@ -456,7 +496,7 @@ gameServer.on('connection', function(socket) {
 
             // emit how many reinforcements the next player has to place
             gameRoom.emit('end phase', null);
-            socket.emit('reinforcements remaining', room.obj.gameState.reinforcementsRemaining);
+            gameRoom.emit('reinforcements remaining', room.obj.gameState.reinforcementsRemaining);
         }
     });
 });
