@@ -512,7 +512,7 @@ app.use(express.urlencoded({extended: true}));
 
 app.get('/', function(req, res) {
     if(users.search(req.sessionID)) {
-        res.redirect('/rooms');
+        return res.redirect('/rooms');
     }
     res.render('index', {error_user: req.session.error_user});
 });
