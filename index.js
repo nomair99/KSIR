@@ -7,7 +7,7 @@ var http = require('http').createServer(app);
 var dotenv = require('dotenv');
 dotenv.config();
 
-var baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'http://komodoandchill.herokuapp.com';
+var baseUrl = 'http://komodoandchill.herokuapp.com';
 
 var session = require('express-session');
 var MemoryStore = session.MemoryStore;
